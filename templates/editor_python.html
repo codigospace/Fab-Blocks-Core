@@ -1,0 +1,128 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>{{ project }}</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='media/codigo.ico') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='tailwind.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='flowbite.css') }}">
+    <link rel="stylesheet" type="text/css"
+        href="{{ url_for('static', filename='javascript/highlight/styles/default.css') }}">
+    <script src="{{ url_for('static', filename='tailwind.js') }}"></script>
+    <script src="{{ url_for('static', filename='flowbite.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='codemirror.min.css') }}">
+    <script src="{{ url_for('static', filename='codemirror.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='python.min.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pylint@2.14.4/dist/pylint.js"></script>
+</head>
+
+<body>
+  {% include 'header_index.html' %}
+  <div class="flex-auto flex-col md:flex-row flex-wrap items-center justify-start m-2 p-0">
+    <button type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5" onclick="verifySyntax()">Verificar Sintaxis</button>
+    <button type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5">Ejecutar</button>
+    <button type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5">Nuevo</button>
+    <button type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5">Abrir</button>
+    <button type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5" onclick="saveProject()">Guardar</button>
+  </div>
+
+  <div id="boxEditor" class="mx-auto md:w-auto w-full px-5 md:px-40 md:pt-3">
+    <textarea id="editor">{{ python_content }}</textarea>
+    <script>
+      var editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
+        mode: "python",
+        lineNumbers: true,
+        theme: "default",
+        autofocus: true
+      });
+    </script>
+  </div>
+    <script>
+        
+    function verifySyntax() {
+      var pythonContent = editor.getValue();
+
+      // Use Pylint for online linting
+      pylint.lint(pythonContent, function (report) {
+        var message = "";
+        if (report.messages.length === 0) {
+          message = "Sintaxis correcta"; // No errors found
+        } else {
+          message = "<ul>";
+          for (var i = 0; i < report.messages.length; i++) {
+            message += "<li>" + report.messages[i].msg + "</li>";
+          }
+          message += "</ul>";
+        }
+
+        // Display the message (consider using a modal or dedicated area)
+        console.log(message); // Replace with appropriate display logic
+      });
+    }
+        function saveProject() {
+            var projectName = document.querySelector('.project-name').innerText;
+
+            var formData = new FormData();
+            formData.append('project_name', projectName);
+
+            // Obtener el contenido del editor de CodeMirror
+            var pythonContent = editor.getValue();
+            var codeWithNewlines = pythonContent.replace(/\n/g, '\\n');
+
+            formData.append('python_content', codeWithNewlines);
+
+            // Enviar la información al servidor
+            fetch('/save_python', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    // Mostrar mensaje de éxito
+                    showAlert('success', '¡Proyecto guardado exitosamente!');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // Mostrar mensaje de error
+                    showAlert('error', '¡Ocurrió un error al guardar el proyecto!');
+                });
+        }
+
+
+        function showAlert(type, message) {
+            // Eliminar alerta existente si hay alguna
+            const existingAlert = document.querySelector('.alert');
+            if (existingAlert) {
+                existingAlert.remove();
+            }
+
+            // Crear nueva alerta
+            const alert = document.createElement('div');
+            alert.classList.add('fixed', 'top-0', 'right-0', 'm-5', 'px-4', 'py-2', 'rounded', 'shadow-lg');
+
+            // Establecer color de acuerdo al tipo
+            if (type === 'success') {
+                alert.classList.add('bg-green-500', 'text-white');
+            } else if (type === 'error') {
+                alert.classList.add('bg-red-500', 'text-white');
+            }
+
+            // Establecer contenido del mensaje
+            alert.innerText = message;
+
+            // Agregar alerta al documento
+            document.body.appendChild(alert);
+
+            // Desvanecer la alerta después de 3 segundos
+            setTimeout(() => {
+                alert.remove();
+            }, 3000);
+        }
+    </script>
+      
+</body>
+
+</html>

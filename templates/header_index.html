@@ -1,0 +1,251 @@
+<nav class="bg-white border-gray-200 dark:bg-gray-900">
+    <div class="flex flex-wrap items-center justify-between mx-auto p-4">
+        <a href="#" class="flex items-start space-x-3 rtl:space-x-reverse w-24">
+            <img src="{{ url_for('static', filename='media/codigo.ico') }}" class="h-8" alt="FabBlocksCore Logo" />
+            <span class="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">
+                FabBlocksCore <span class="project-name">{{ project }}</span></span>
+        </a>  
+        <button data-collapse-toggle="navbar-dropdown" type="button" class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" aria-controls="navbar-dropdown" aria-expanded="false">
+            <span class="sr-only">Open main menu</span>
+            <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h15M1 7h15M1 13h15"/>
+            </svg>
+        </button>
+        <div class="hidden w-full md:block md:w-96 items-start" id="navbar-dropdown">
+            <ul class="font-medium flex flex-col p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-gray-50 md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0 md:bg-white dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700 items-start">
+                <li>
+                    <button id="dropdownNavbarLink" data-dropdown-toggle="dropdownNavbar"
+                        class="flex items-center justify-between w-full py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 md:w-auto dark:text-white md:dark:hover:text-blue-500 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent">Proyectos
+                        <svg class="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                            fill="none" viewBox="0 0 10 6">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="m1 1 4 4 4-4" />
+                        </svg>
+                    </button>
+                    <div id="dropdownNavbar" class="z-10 hidden font-normal bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600">
+                        <ul class="py-2 text-sm text-gray-700 dark:text-gray-400" aria-labelledby="dropdownLargeButton">
+                            <li>
+                                <a href="#" onclick="showCreateProjectModal()" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Nuevo Proyecto</a>
+                            </li>                            
+                            <li>
+                                <a href="{{ url_for('index') }}"
+                                    class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Abrir Proyecto</a>
+                            </li>
+                            <li>
+                                <a href="#" onclick="showImportModal()"
+                                    class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Importar Proyecto</a>
+                            </li>
+                            <li>
+                                <a href="#" id="exportLink" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Exportar Proyecto</a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+                <li>
+                    <button id="dropdownNavbarLink" data-dropdown-toggle="dropdownNavbarPrograma"
+                        class="flex items-center justify-between w-full py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 md:w-auto dark:text-white md:dark:hover:text-blue-500 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent">Programa
+                        <svg class="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                            fill="none" viewBox="0 0 10 6">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="m1 1 4 4 4-4" />
+                        </svg>
+                    </button>
+                    <div id="dropdownNavbarPrograma" class="z-10 hidden font-normal bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600">
+                        <ul class="py-2 text-sm text-gray-700 dark:text-gray-400" aria-labelledby="dropdownLargeButton">
+                            <li>
+                                <a href="#"
+                                    class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Verificar</a>
+                            </li>
+                            <li>
+                                <a href="#"
+                                    class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Subir</a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+                <li>
+                    <button id="dropdownNavbarLink" data-dropdown-toggle="dropdownNavbarAyuda"
+                        class="flex items-center justify-between w-full py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 md:w-auto dark:text-white md:dark:hover:text-blue-500 dark:focus:text-white dark:border-gray-700 dark:hover:bg-gray-700 md:dark:hover:bg-transparent">Ayuda
+                        <svg class="w-2.5 h-2.5 ms-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                            fill="none" viewBox="0 0 10 6">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="m1 1 4 4 4-4" />
+                        </svg>
+                    </button>
+                    <div id="dropdownNavbarAyuda" class="z-10 hidden font-normal bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600">
+                        <ul class="py-2 text-sm text-gray-700 dark:text-gray-400" aria-labelledby="dropdownLargeButton">
+                            <li>
+                                <a href="#"
+                                    class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Primeros Pasos</a>
+                            </li>
+                            <li>
+                                <a href="#"
+                                    class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Tutoriales</a>
+                            </li>
+                            <li>
+                                <a href="#"
+                                    class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">FAQ</a>
+                            </li>
+                            <li>
+                                <a href="https://wa.me/+51984425782" target="_blank" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Contactenos</a>
+                            </li>
+                            <li>
+                                <a href="#"
+                                    class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Acerca de</a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div id="createProjectModal" class="hidden fixed top-0 left-0 right-0 bottom-0 z-50 flex justify-center items-center bg-gray-900 bg-opacity-50">
+    <div class="bg-white rounded shadow-md p-8 max-w-md">
+        <h2 class="text-xl font-semibold mb-4">Crear Nuevo Proyecto</h2>
+        <input type="text" id="projectNameInput" placeholder="Nombre del proyecto" class="border rounded px-4 py-2 focus:outline-none focus:border-blue-500 mb-4 w-full">
+        <div class="flex justify-end">
+            <button onclick="createProject()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Crear</button>
+            <button onclick="closeCreateProjectModal()" class="ml-4 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<div id="importModal" class="hidden fixed inset-0 z-50 overflow-auto flex items-center justify-center bg-black bg-opacity-50">
+    <div class="relative bg-white mx-auto my-20 p-8 rounded-lg shadow-lg w-96">
+        <button id="closeImportModal" onclick="closeImportModal()" class="absolute top-0 right-0 mr-4 mt-2 text-gray-500 hover:text-black focus:outline-none">
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+        <form id="importForm" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" accept=".fab,.py" required class="block border border-gray-300 rounded-md py-2 px-3 w-full">
+            <button type="submit" class="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Importar Proyecto</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Show/hide code
+    function toggleCode() {
+        $('#code').toggle(); // Toggle the visibility of the code
+        var button = document.getElementById("toogleButton");
+
+        if ($('#code').css('display') == 'none') {
+            $('#blockly').width('100%');
+        } else {
+            $('#blockly').width('66%');
+        }
+
+        // Resize workspace
+        Blockly.fireUiEvent(window, "resize");
+    }
+    function saveDataAndRedirect(url) {
+        try {
+            saveData(false);
+        } catch (error) {
+            console.error('Error al guardar los datos:', error);
+        } finally {
+            window.location.href = url;
+        }
+    }
+
+    function showCreateProjectModal() {
+        const modal = document.getElementById('createProjectModal');
+        modal.classList.remove('hidden');
+    }
+
+    function closeCreateProjectModal() {
+        const modal = document.getElementById('createProjectModal');
+        modal.classList.add('hidden');
+    }
+
+    function createProject() {
+        const projectNameInput = document.getElementById('projectNameInput');
+        const projectName = projectNameInput.value.trim();
+        
+        if (projectName !== '') {
+            fetch(`/create_project/${encodeURIComponent(projectName)}`, {
+                method: 'POST'
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Redireccionar a la página de índice después de crear el proyecto
+                    window.location.href = '/project/'+ projectName;
+                } else {
+                    console.error('Error creating project:', response.status);
+                }
+            })
+            .catch(error => console.error('Error creating project:', error));
+        }
+    }
+    function toggleMobileMenu() {
+        const menu = document.getElementById('navbar-dropdown');
+        menu.classList.toggle('hidden');
+    }
+
+// Función para mostrar el modal de importar proyecto
+function showImportModal() {
+        const modal = document.getElementById('importModal');
+        modal.classList.remove('hidden');
+    }
+
+    // Función para cerrar el modal de importar proyecto
+    function closeImportModal() {
+        const modal = document.getElementById('importModal');
+        modal.classList.add('hidden');
+    }
+
+    // Event listener para el formulario de importar proyecto
+    document.getElementById("importForm").addEventListener("submit", function(event){
+        event.preventDefault();
+        var formData = new FormData(this);
+        var fileName = formData.get('file').name; // Obtener el nombre del archivo
+
+        fetch('/import_project', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('¡Proyecto importado exitosamente!');
+                // Redireccionar a la página del proyecto importado
+                window.location.href = '/project/' + fileName.split('.').slice(0, -1).join('.');
+            } else {
+                alert('Error al importar el proyecto: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al importar el proyecto. Consulte la consola para obtener más información.');
+        });
+
+        // Cerrar el modal después de enviar el formulario
+        closeImportModal();
+    });
+
+    document.getElementById("exportLink").addEventListener("click", function(event) {
+    event.preventDefault(); // Prevenir el comportamiento predeterminado del enlace
+
+    // Obtener el nombre del proyecto
+    const projectName = document.querySelector(".project-name").innerText;
+
+    // Crear un elemento <a> oculto para descargar el archivo
+    const downloadLink = document.createElement("a");
+    downloadLink.href = `/export_project/${encodeURIComponent(projectName)}`;
+    downloadLink.download = `${projectName}.fab`; // Nombre de archivo predeterminado si se descarga un .fab
+    downloadLink.style.display = "none";
+    document.body.appendChild(downloadLink);
+
+    // Simular el clic en el enlace de descarga
+    downloadLink.click();
+
+    // Eliminar el elemento <a> después de la descarga
+    document.body.removeChild(downloadLink);
+});
+
+
+
+</script>

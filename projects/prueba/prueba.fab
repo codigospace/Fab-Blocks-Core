@@ -1,0 +1,1 @@
+<xml id="startBlocks" style="display: none"><block type="controls_setupLoop" id="1" deletable="false" x="0" y="0"><statement name="SETUP"><block type="bq_led_2" id="25"><field name="VAR">name</field><field name="MOD">0</field><field name="PORT">0</field></block></statement></block></xml>

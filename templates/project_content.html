@@ -1,0 +1,353 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>{{project}}</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='media/codigo.ico') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='tailwind.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='flowbite.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='visualino.css') }}">
+    <script src="{{ url_for('static', filename='tailwind.js') }}"></script>
+    <script src="{{ url_for('static', filename='flowbite.js') }}"></script>
+    <link rel="stylesheet" type="text/css"
+        href="{{ url_for('static', filename='javascript/highlight/styles/default.css') }}">
+</head>
+
+<body>
+    {% include 'header_index.html' %}
+    <div class="flex-auto flex-col md:flex-row flex-wrap items-center justify-start m-2 p-0">
+        <button type="button"
+            class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5">Verificar</button>
+        <button type="button"
+            class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5">Ejecutar</button>
+        <button type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5" onclick="showCreateProjectModal()">Nuevo</button>
+        <button type="button" onclick="showImportModal()" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5">Abrir</button>
+        <button type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5"
+            onclick="saveProject()">Guardar</button>
+
+        <select id="languageSelector" onchange="changeLanguage()"
+            class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 w-auto md:w-48 p-2.5">
+            <option value="cpp">C++</option>
+            <option value="python">Python</option>
+        </select>
+
+        <select id="viewSelector" onchange="changeView()"
+            class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 w-auto md:w-48 p-2.5">
+            <option value="bq-code">Bloques-Codigo</option>
+            <option value="bq">Bloques</option>
+            <option value="code">Codigo</option>
+        </select>
+        <button id="editorButton" onclick="editPythonCode()" class="bg-gray-300 border border-gray-300 text-gray-900 text-sm rounded-lg p-2.5">
+            Editar Python
+        </button>        
+    </div>
+
+    {{ fab_content|safe }}
+    <div id="wrap" style="max-height: 80%;">
+        <div id="blockly" style="float: left; width: 66%;"></div>
+        <div id="code" style="float: right; width: 34%;"></div>
+    </div>
+    <script src="{{ url_for('static', filename='javascript/jquery/dist/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='javascript/underscore/underscore.js') }}"></script>
+    <script src="{{ url_for('static', filename='javascript/highlight/highlight.pack.js') }}"></script>
+    <script src="{{ url_for('static', filename='javascript/blockly-bq/blockly_compressed.js') }}"></script>
+    <script src="{{ url_for('static', filename='javascript/blockly-bq/blocks_compressed.js') }}"></script>
+    <script src="{{ url_for('static', filename='javascript/blockly-bq/arduino_compressed.js') }}"></script>
+    <script src="{{ url_for('static', filename='roboblocks.js') }}"></script>
+    <script>
+
+        var selectedLanguage;
+        var selectedView;
+
+        if (window.roboblocksLanguage === undefined
+            || window.roboblocksLanguage == null) {
+            var roboblocksLanguage = 'es-ES';
+        }
+
+        RoboBlocks.load({
+            zoom: 0.5,
+        }, 'cpp');
+
+        // New workspace for each test case
+        var el = document.getElementById('blockly');
+        Blockly.inject(el, {
+            toolbox: Blockly.createToolbox()
+        });
+        // Create a default setup/loop block
+        Blockly.Xml.domToWorkspace(Blockly.getMainWorkspace(),
+            document.getElementById('startBlocks'));
+
+        $('.blocklySvg, #blockly').height('100%');
+        $('.blocklySvg').width('100%');
+
+        var colors = [
+            "",
+            RoboBlocks.LANG_COLOUR_PROCEDURES,
+            RoboBlocks.LANG_COLOUR_CONTROL,
+            RoboBlocks.LANG_COLOUR_LOGIC,
+            RoboBlocks.LANG_COLOUR_MATH,
+            RoboBlocks.LANG_COLOUR_VARIABLES,
+            RoboBlocks.LANG_COLOUR_TEXT,
+            RoboBlocks.LANG_COLOUR_COMMUNICATION,
+            RoboBlocks.LANG_COLOUR_MODULAR,
+            RoboBlocks.LANG_COLOUR_ZUM,
+            RoboBlocks.LANG_COLOUR_BQ,
+            RoboBlocks.LANG_COLOUR_ADVANCED,
+            RoboBlocks.LANG_COLOUR_LCD,
+            RoboBlocks.LANG_COLOUR_SERVO,
+        ];
+        $('.blocklyTreeRow').each(function (i, e) {
+            $(e).prepend('<span class="treeLabelBlock" style="background-color:' + colors[i] + '"></span>');
+        });
+
+        // Update code
+        Blockly.addChangeListener(function () {
+            $('#code').html('<code class="c++"><pre>'
+                + escapeCode(Blockly.Arduino.workspaceToCode())
+                + '</pre></code>');
+            // Highlight
+            $("pre").each(function (i, e) {
+                hljs.highlightBlock(e);
+            });
+        });
+
+        // Show/hide code
+        function toogleCode() {
+            if ($('#code').css('display') == 'none') {
+                // Show
+                $('#code').show();
+                $('#blockly').width('66%');
+            } else {
+                // Hide
+                $('#code').hide();
+                $('#blockly').width('100%');
+            }
+            // Resize workspace
+            Blockly.fireUiEvent(window, "resize");
+        }
+
+        function escapeCode(code) {
+            var str = code;
+            str = str.replace(/</g, "&lt;");
+            str = str.replace(/>/g, "&gt;");
+            return str;
+        }
+
+        function resetWorkspace() {
+            Blockly.mainWorkspace.clear();
+            Blockly.Xml.domToWorkspace(Blockly.getMainWorkspace(),
+                document.getElementById('startBlocks'));
+        }
+
+        function changeLanguage() {
+            selectedLanguage = document.getElementById('languageSelector').value;
+            localStorage.setItem('selectedLanguage', selectedLanguage);
+
+            // Cargar los bloques según el lenguaje seleccionado
+            RoboBlocks.load({
+                zoom: 0.5
+            }, selectedLanguage);
+
+            // Actualizar el código mostrado según el lenguaje seleccionado
+            updateCode(selectedLanguage);
+            changeEditorButtonState();
+        }
+
+        function updateCode(language) {
+            var code = language === 'cpp' ? Blockly.Arduino.workspaceToCode() : Blockly.Arduino.workspaceToCode();
+            var languageClass = language === 'cpp' ? 'python' : 'cpp';
+
+            $('#code').html('<code class="' + languageClass + '"><pre>' +
+                escapeCode(code) +
+                '</pre></code>');
+
+            // Resaltar el código
+            $("pre").each(function (i, e) {
+                hljs.highlightBlock(e);
+            });
+        }
+        function updateCode(language) {
+            var code = language === 'cpp' ? Blockly.Arduino.workspaceToCode() : Blockly.Arduino.workspaceToCode();
+
+            $('#code').html('<code class="c++"><pre>' +
+                escapeCode(Blockly.Arduino.workspaceToCode()) +
+                '</pre></code>');
+            // Resaltar el código
+            $("pre").each(function (i, e) {
+                hljs.highlightBlock(e);
+            });
+        }
+
+        function changeView() {
+            var selectedView = document.getElementById('viewSelector').value;
+            localStorage.setItem('selectedView', selectedView);
+
+            var blockly = document.getElementById('blockly');
+            var code = document.getElementById('code');
+
+            // Clear any previous inline styles to avoid conflicts
+            blockly.style.removeProperty('width');
+            blockly.style.removeProperty('float');
+            code.style.removeProperty('width');
+            code.style.removeProperty('float');
+            code.style.removeProperty('display');
+
+            switch (selectedView) {
+                case 'bq':
+                    blockly.style.display = 'block';
+                    blockly.style.width = '100%';
+                    blockly.style.float = 'none';
+                    code.style.display = 'none';
+                    break;
+                case 'bq-code':
+                    blockly.style.display = 'block';
+                    blockly.style.width = '66%';
+                    blockly.style.float = 'left'; // Añade la propiedad float aquí
+                    code.style.display = 'block';
+                    code.style.width = '34%';
+                    code.style.float = 'right'; // Añade la propiedad float aquí
+                    break;
+                case 'code':
+                    blockly.style.display = 'none';
+                    code.style.display = 'block';
+                    code.style.width = '100%';
+                    code.style.float = 'none'; // Añade la propiedad float aquí
+                    break;
+                default:
+                    console.warn('Invalid view selection:', selectedView);
+                    break;
+            }
+
+            // Update Blockly layout
+            Blockly.svgResize(Blockly.getMainWorkspace());
+        }
+
+        function saveProject() {
+            var projectName = document.querySelector('.project-name').innerText;
+            var xml = Blockly.Xml.domToText(Blockly.Xml.workspaceToDom(Blockly.getMainWorkspace()));
+
+            // Modificar el inicio del XML
+            var modifiedXml = xml.replace('<xml xmlns="http://www.w3.org/1999/xhtml">', '<xml id="startBlocks" style="display: none">');
+            console.log('Project Name:', projectName);
+            console.log('Blockly XML:', modifiedXml);
+            
+            // Crear un objeto FormData
+            var formData = new FormData();
+            formData.append('project_name', projectName);
+            formData.append('xml_content', modifiedXml);
+            
+            // Enviar la información al servidor
+            fetch('/save_project', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                // Mostrar mensaje de éxito
+                showAlert('success', '¡Proyecto guardado exitosamente!');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Mostrar mensaje de error
+                showAlert('error', '¡Ocurrió un error al guardar el proyecto!');
+            });
+        }
+
+        function showAlert(type, message) {
+            // Eliminar alerta existente si hay alguna
+            const existingAlert = document.querySelector('.alert');
+            if (existingAlert) {
+                existingAlert.remove();
+            }
+
+            // Crear nueva alerta
+            const alert = document.createElement('div');
+            alert.classList.add('fixed', 'top-0', 'right-0', 'm-5', 'px-4', 'py-2', 'rounded', 'shadow-lg');
+
+            // Establecer color de acuerdo al tipo
+            if (type === 'success') {
+                alert.classList.add('bg-green-500', 'text-white');
+            } else if (type === 'error') {
+                alert.classList.add('bg-red-500', 'text-white');
+            }
+
+            // Establecer contenido del mensaje
+            alert.innerText = message;
+
+            // Agregar alerta al documento
+            document.body.appendChild(alert);
+
+            // Desvanecer la alerta después de 3 segundos
+            setTimeout(() => {
+                alert.remove();
+            }, 3000);
+        }
+
+        function editPythonCode() {
+            // Obtener el código Python generado por Blockly
+            var codePython = Blockly.Arduino.workspaceToCode();
+            var projectName = document.querySelector('.project-name').innerText;
+            
+            // Reemplazar los saltos de línea con '\n'
+            var codeWithNewlines = codePython.replace(/\n/g, '\\n');
+            
+            // Crear un objeto FormData y agregar el código
+            var formData = new FormData();
+            formData.append('code', codeWithNewlines);
+            formData.append('project_name', projectName);
+            
+            // Enviar el código al servidor
+            fetch('/edit_code', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(data => {
+                // Manejar la respuesta del servidor si es necesario
+                console.log(data);
+                // Redirigir o mostrar algún mensaje al usuario, por ejemplo
+                alert('El código Python ha sido enviado correctamente.');
+                window.location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Manejar cualquier error que pueda ocurrir durante la solicitud
+                alert('Ha ocurrido un error al enviar el código Python.');
+            });
+        }
+
+        function changeEditorButtonState() {
+            var editorButton = document.getElementById('editorButton');
+
+            if (selectedLanguage === 'python') {
+                editorButton.classList.remove('bg-gray-300', 'text-gray-600');
+                editorButton.classList.add('bg-blue-500', 'text-white');
+                editorButton.disabled = false;
+            } else {
+                editorButton.classList.remove('bg-blue-500', 'text-white');
+                editorButton.classList.add('bbg-gray-300', 'text-gray-600');
+                editorButton.disabled = true;
+            }
+        }
+
+        // Detectar el lenguaje seleccionado al cargar la página
+        document.addEventListener('DOMContentLoaded', function () {
+            var selectedLanguage = localStorage.getItem('selectedLanguage') || 'cpp';
+            if (selectedLanguage) {
+                document.getElementById('languageSelector').value = selectedLanguage;
+                changeLanguage();
+            }
+            // También deberías llamar a la función changeView() para asegurarte de que el estado de la vista se mantenga.
+            var selectedView = localStorage.getItem('selectedView');
+            if (selectedView) {
+                document.getElementById('viewSelector').value = selectedView;
+                changeView();
+            }
+        });
+    </script>
+</body>
+
+</html>

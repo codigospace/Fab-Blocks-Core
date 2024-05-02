@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="{{ url_for('static', filename='tailwind.css') }}" rel="stylesheet">
+    <script src="{{ url_for('static', filename='tailwind.js') }}"></script>
+
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='media/codigo.ico') }}">
+    <title>Administrador de Proyectos</title>
+</head>
+
+<body class="bg-gray-100 flex flex-col items-center">
+    <h1 class="text-3xl font-bold text-center mb-4 py-5">Administrador de Proyectos</h1>
+
+    <div class="w-full max-w-md bg-white rounded shadow-md p-4">
+        <h2 class="text-xl font-semibold mt-8 mb-4">Crear un nuevo Proyecto:</h2>
+        <div id="createProjectAlert" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <strong class="font-bold">Oops!</strong>
+            <span class="block sm:inline" id="createProjectAlertMessage"></span>
+            <span class="absolute top-0 bottom-0 right-0 px-4 py-3">
+                <svg class="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Cerrar</title><path d="M14.348 5.652a.5.5 0 1 1 .707.708l-9.9 9.9a.5.5 0 0 1-.708 0l-9.9-9.9a.5.5 0 1 1 .708-.708l9.9 9.9a.5.5 0 0 1 0 .707l-9.9 9.9a.5.5 0 1 1-.707-.708l9.9-9.9a.5.5 0 0 1 0-.707z"/></svg>
+            </span>
+        </div>
+        <div id="createProjectSuccessAlert" class="hidden bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <strong class="font-bold">Bien hecho!</strong>
+            <span class="block sm:inline" id="createProjectSuccessAlertMessage"></span>
+            <span class="absolute top-0 bottom-0 right-0 px-4 py-3">
+                <svg class="fill-current h-6 w-6 text-green-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Cerrar</title><path d="M14.348 5.652a.5.5 0 1 1 .707.708l-9.9 9.9a.5.5 0 0 1-.708 0l-9.9-9.9a.5.5 0 1 1 .708-.708l9.9 9.9a.5.5 0 0 1 0 .707l-9.9 9.9a.5.5 0 1 1-.707-.708l9.9-9.9a.5.5 0 0 1 0-.707z"/></svg>
+            </span>
+        </div>
+        <div id="createProjectFormContainer">
+            <form id="createProjectForm" action="#" method="post">
+                <div class="flex items-center">
+                    <input type="text" id="projectNameInput" name="project_name" placeholder="Nombre del Proyecto"
+                        class="border rounded px-4 py-2 focus:outline-none focus:border-blue-500 mr-4 w-full">
+                    <button type="button"
+                        class="createButton bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Crear</button>
+                </div>
+            </form>
+        </div>
+    
+        <h2 class="text-xl font-semibold mb-4">Proyectos:</h2>
+    
+        <ul id="projectList" class="list-disc ml-4 grid grid-cols-2 gap-4">
+            {% for project in projects %}
+            <li class="flex items-center justify-between mb-2">
+                <span class="text-blue-500 hover:underline">
+                    <a href="{{ url_for('project_content', project_name=project) }}">{{ project }}</a>
+                </span>
+                <button class="deleteButton bg-transparent text-red-500 hover:text-red-700 focus:outline-none" data-project-name="{{ project }}">
+                    <img src="{{ url_for('static', filename='/media/borrar.png') }}" alt="Delete">
+                </button>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    
+
+    <div id="confirmDeleteModal" tabindex="-1" aria-hidden="true"
+        class="hidden fixed top-0 left-0 right-0 bottom-0 z-50 flex justify-center items-start overflow-y-auto bg-gray-900 bg-opacity-50">
+        <div class="bg-white shadow-md rounded-lg w-full max-w-md mt-20">
+            <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+                <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+                        Confirmar Eliminacion
+                    </h3>
+                    <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                        data-modal-hide="confirmDeleteModal">
+                        <svg class="w-3 h-3" aria-hidden="true" fill="none"
+                            viewBox="0 0 14 14">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                        </svg>
+                        <span class="sr-only">Cerrar</span>
+                    </button>
+                </div>
+                <div class="p-4 md:p-5 space-y-4">
+                    <p id="deleteMessage" class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
+                        Estas seguro de eliminar el proyecto?
+                    </p>
+                </div>
+                <div class="flex items-center p-4 md:p-5 border-t border-gray-200 rounded-b dark:border-gray-600">
+                    <button id="confirmDeleteButton"
+                        class="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800">Eliminar</button>
+                    <button type="button"
+                        class="cancelButton py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+                        data-modal-hide="confirmDeleteModal">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Botones de eliminar
+            
+            const deleteButtons = document.querySelectorAll('.deleteButton');
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    const projectName = button.getAttribute('data-project-name');
+                    const deleteMessage = document.getElementById('deleteMessage');
+                    deleteMessage.textContent = `Are you sure you want to delete project "${projectName}"?`;
+
+                    // Mostrar modal de confirmación
+                    const modal = document.getElementById('confirmDeleteModal');
+                    modal.classList.remove('hidden');
+
+                    // Evento para el botón de confirmar eliminación
+                    const confirmDeleteButton = document.getElementById('confirmDeleteButton');
+                    confirmDeleteButton.addEventListener('click', function () {
+                        // Ocultar modal
+                        modal.classList.add('hidden');
+                        // Eliminar el proyecto
+                        deleteProject(projectName);
+                    });
+
+                    // Evento para el botón de cancelar
+                    const cancelButton = document.querySelector('[data-modal-hide="confirmDeleteModal"]');
+                    cancelButton.addEventListener('click', function () {
+                        // Ocultar modal
+                        modal.classList.add('hidden');
+                    });
+                });
+            });
+
+            // Evento para el botón de crear proyecto
+            const createButton = document.querySelector('.createButton');
+            const projectNameInput = document.getElementById('projectNameInput');
+            createButton.addEventListener('click', function () {
+                const projectName = projectNameInput.value.trim();
+                if (projectName !== '') {
+                    createProject(projectName);
+                }
+            });
+
+            // Función para crear un proyecto
+            function createProject(projectName) {
+                fetch(`/create_project/${encodeURIComponent(projectName)}`, {
+                    method: 'POST'
+                })
+                .then(response => response.json()) // Aseguramos que la respuesta es tratada como JSON
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Mostrar mensaje de éxito
+                        displayAlert('createProjectSuccessAlert', `Project "${projectName}" created successfully!`);
+                        // Añadir el proyecto a la lista
+                        addProjectToList(projectName);
+                        // Limpiar input
+                        projectNameInput.value = '';
+                    } else {
+                        // Mostrar mensaje de error
+                        displayAlert('createProjectAlert', data.message || 'An error occurred while creating the project.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    displayAlert('createProjectAlert', 'Failed to create project due to a network error.');
+                });
+            }
+
+            function displayAlert(alertId, message) {
+                const alertElement = document.getElementById(alertId);
+                const messageElement = alertElement.querySelector('span.block');
+                messageElement.textContent = message;
+                alertElement.classList.remove('hidden');
+                setTimeout(() => alertElement.classList.add('hidden'), 5000); // Ocultar después de 5 segundos
+            }
+
+            function addProjectToList(projectName) {
+                const projectList = document.getElementById('projectList');
+                const listItem = document.createElement('li');
+                listItem.classList.add('flex', 'items-center', 'justify-between', 'mb-2');
+                listItem.innerHTML = `
+                    <span class="text-blue-500 hover:underline">
+                        <a href="/project/${encodeURIComponent(projectName)}">${projectName}</a>
+                    </span>
+                    <button class="deleteButton bg-transparent text-red-500 hover:text-red-700 focus:outline-none" data-project-name="${projectName}">
+                        <img src="{{ url_for('static', filename='/media/borrar.png') }}" alt="Delete">
+                    </button>
+                `;
+                projectList.appendChild(listItem);
+            }
+
+            // Función para eliminar un proyecto
+            function deleteProject(projectName) {
+                fetch(`/delete_project/${projectName}`, {
+                    method: 'POST'
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            // Recargar la página después de eliminar el proyecto
+                            window.location.reload();
+                        } else {
+                            console.error('Error deleting project:', response.status);
+                        }
+                    })
+                    .catch(error => console.error('Error deleting project:', error));
+            }
+        });
+    </script>
+</body>
+
+</html>
