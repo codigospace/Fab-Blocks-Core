@@ -1,8 +1,25 @@
-# Definir la función lambda para convertir un número a la base especificada
-change_base = lambda number, base_destiny: format(int(number), {"decimal": "d", "hexadecimal": "x", "octal": "o", "binario": "b"}[base_destiny])
+from flask import Flask, render_template
+from flask_socketio import SocketIO
+from threading import Thread
+import subprocess
 
-# Ejemplo de uso de la función change_base
-numero = "1010"  # Número en binario
-base_destino = "octal"  # Convertir a formato octal
-numero_convertido = change_base(numero, base_destino)
-print("Número convertido a", base_destino, ":", numero_convertido)
+app = Flask(__name__)
+socketio = SocketIO(app)
+
+@app.route('/')
+def index():
+    return render_template('test.html')
+
+def run_python_code(code):
+    try:
+        exec(code, globals())
+    except Exception as e:
+        return str(e)
+
+@socketio.on('execute_code')
+def execute_code(code):
+    output = run_python_code(code)
+    socketio.emit('output', output)
+
+if __name__ == '__main__':
+    socketio.run(app)

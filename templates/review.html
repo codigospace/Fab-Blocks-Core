@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Survey</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='media/codigo.ico') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='tailwind.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='flowbite.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='visualino.css') }}">
+    <script src="{{ url_for('static', filename='tailwind.js') }}"></script>
+    <script src="{{ url_for('static', filename='flowbite.js') }}"></script>
+</head>
+<body class="bg-gray-100">
+    <!-- Contenedor principal con estilos de Tailwind -->
+    <div class="container mx-auto py-8">
+        <!-- Mostrar mensajes flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="bg-green-500 text-white p-4 mb-4">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <!-- Formulario con estilos de Tailwind -->
+        <form action="{{ url_for('submit_survey') }}" method="post" class="max-w-md mx-auto bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+            <div class="mb-4">
+                <label for="tools_opinion" class="block text-gray-700 text-sm font-bold mb-2">Opinion sobre las herramientas:</label>
+                <input type="text" name="tools_opinion" id="tools_opinion" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div class="mb-4">
+                <label for="session_opinion" class="block text-gray-700 text-sm font-bold mb-2">Opinion sobre la sesion:</label>
+                <input type="text" name="session_opinion" id="session_opinion" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div class="mb-6">
+                <label for="preferences" class="block text-gray-700 text-sm font-bold mb-2">Comentarios:</label>
+                <input type="text" name="preferences" id="preferences" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div class="flex items-center justify-center">
+                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Submit</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

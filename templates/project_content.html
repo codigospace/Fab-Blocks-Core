@@ -11,19 +11,26 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='visualino.css') }}">
     <script src="{{ url_for('static', filename='tailwind.js') }}"></script>
     <script src="{{ url_for('static', filename='flowbite.js') }}"></script>
-    <link rel="stylesheet" type="text/css"
-        href="{{ url_for('static', filename='javascript/highlight/styles/default.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='javascript/highlight/styles/default.css') }}">
+    <script src="{{ url_for('static', filename='socket.io.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0"></script>
+
 </head>
 
 <body>
     {% include 'header_index.html' %}
     <div class="flex-auto flex-col md:flex-row flex-wrap items-center justify-start m-2 p-0">
-        <button type="button"
-            class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5">Verificar</button>
-        <button type="button"
-            class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5">Ejecutar</button>
-        <button type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5" onclick="showCreateProjectModal()">Nuevo</button>
-        <button type="button" onclick="showImportModal()" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5">Abrir</button>
+        <button type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5"
+            id="verify-button">Verificar</button>
+        <button type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5"
+            id="execute-button" onclick="executePython()">Ejecutar</button>    
+        <button type="button" class="text-white bg-red-700 font-medium rounded-lg text-sm px-5 py-2.5"
+        onclick="cancelExecution()">Detener Ejecución</button>
+        <button type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5"
+            onclick="showCreateProjectModal()">Nuevo</button>
+        <button type="button" onclick="showImportModal()"
+            class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5">Abrir</button>
         <button type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5"
             onclick="saveProject()">Guardar</button>
 
@@ -39,11 +46,25 @@
             <option value="bq">Bloques</option>
             <option value="code">Codigo</option>
         </select>
-        <button id="editorButton" onclick="editPythonCode()" class="bg-gray-300 border border-gray-300 text-gray-900 text-sm rounded-lg p-2.5">
+        <button id="editorButton" onclick="editPythonCode()"
+            class="bg-gray-300 border border-gray-300 text-gray-900 text-sm rounded-lg p-2.5">
             Editar Python
-        </button>        
+        </button>
+        <button id="toggle-chart" type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5">Ocultar Gráfico</button>
+        <button id="toggle-console" type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5">Ocultar Consola</button>
     </div>
-
+    <div class="flex flex-col md:flex-row mx-auto w-full px-4 md:px-20 pt-3 space-y-4 md:space-y-0 md:space-x-4">
+        <div id="chart-container" class="w-full md:w-1/2 mt-4 md:mt-0 p-4 border border-gray-300 rounded relative">
+            <h3 class="font-bold mb-2">Gráfico en tiempo real:</h3>
+            <canvas id="chart"></canvas>
+        </div>
+    </div>
+    
+    <div id="output-container" class="mt-4 p-4 border border-gray-300 rounded mx-4 md:mx-20">
+        <h3 class="font-bold mb-2">Salida:</h3>
+        <pre id="output-text" class="overflow-auto h-40"></pre>
+    </div>
+    
     {{ fab_content|safe }}
     <div id="wrap" style="max-height: 80%;">
         <div id="blockly" style="float: left; width: 66%;"></div>
@@ -60,6 +81,7 @@
 
         var selectedLanguage;
         var selectedView;
+        var chartInitialized;
 
         if (window.roboblocksLanguage === undefined
             || window.roboblocksLanguage == null) {
@@ -168,17 +190,6 @@
                 hljs.highlightBlock(e);
             });
         }
-        function updateCode(language) {
-            var code = language === 'cpp' ? Blockly.Arduino.workspaceToCode() : Blockly.Arduino.workspaceToCode();
-
-            $('#code').html('<code class="c++"><pre>' +
-                escapeCode(Blockly.Arduino.workspaceToCode()) +
-                '</pre></code>');
-            // Resaltar el código
-            $("pre").each(function (i, e) {
-                hljs.highlightBlock(e);
-            });
-        }
 
         function changeView() {
             var selectedView = document.getElementById('viewSelector').value;
@@ -224,7 +235,7 @@
             Blockly.svgResize(Blockly.getMainWorkspace());
         }
 
-        function saveProject() {
+        function saveProject(showAlerts = true) {
             var projectName = document.querySelector('.project-name').innerText;
             var xml = Blockly.Xml.domToText(Blockly.Xml.workspaceToDom(Blockly.getMainWorkspace()));
 
@@ -232,28 +243,32 @@
             var modifiedXml = xml.replace('<xml xmlns="http://www.w3.org/1999/xhtml">', '<xml id="startBlocks" style="display: none">');
             console.log('Project Name:', projectName);
             console.log('Blockly XML:', modifiedXml);
-            
+
             // Crear un objeto FormData
             var formData = new FormData();
             formData.append('project_name', projectName);
             formData.append('xml_content', modifiedXml);
-            
+
             // Enviar la información al servidor
             fetch('/save_project', {
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json())
-            .then(data => {
-                console.log(data);
-                // Mostrar mensaje de éxito
-                showAlert('success', '¡Proyecto guardado exitosamente!');
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                // Mostrar mensaje de error
-                showAlert('error', '¡Ocurrió un error al guardar el proyecto!');
-            });
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    // Mostrar mensaje de éxito si showAlerts es verdadero
+                    if (showAlerts) {
+                        showAlert('success', '¡Proyecto guardado exitosamente!');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // Mostrar mensaje de error si showAlerts es verdadero
+                    if (showAlerts) {
+                        showAlert('error', '¡Ocurrió un error al guardar el proyecto!');
+                    }
+                });
         }
 
         function showAlert(type, message) {
@@ -283,53 +298,92 @@
             // Desvanecer la alerta después de 3 segundos
             setTimeout(() => {
                 alert.remove();
-            }, 3000);
+            }, 1500);
         }
+
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+        socket.on('connect', function() {
+            console.log('Connected');
+            setupSocketHandlers();
+        });
+
+        socket.on('disconnect', function() {
+            console.log('Disconnected');
+        });
+
+        socket.on('execution_output', function(data) {
+            console.log('Output:', data.output);
+            // Actualiza el estado de ejecución en tu frontend según sea necesario
+        });
+
+        socket.on('execution_complete', function(data) {
+            console.log('Execution complete. Result:', data.result);
+            // Haz lo que necesites hacer cuando la ejecución del código haya terminado
+        });
 
         function editPythonCode() {
             // Obtener el código Python generado por Blockly
             var codePython = Blockly.Arduino.workspaceToCode();
             var projectName = document.querySelector('.project-name').innerText;
-            
+
             // Reemplazar los saltos de línea con '\n'
             var codeWithNewlines = codePython.replace(/\n/g, '\\n');
-            
+
             // Crear un objeto FormData y agregar el código
             var formData = new FormData();
             formData.append('code', codeWithNewlines);
             formData.append('project_name', projectName);
-            
+
             // Enviar el código al servidor
             fetch('/edit_code', {
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.text())
-            .then(data => {
-                // Manejar la respuesta del servidor si es necesario
-                console.log(data);
-                // Redirigir o mostrar algún mensaje al usuario, por ejemplo
-                alert('El código Python ha sido enviado correctamente.');
-                window.location.reload();
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                // Manejar cualquier error que pueda ocurrir durante la solicitud
-                alert('Ha ocurrido un error al enviar el código Python.');
-            });
+                .then(response => response.text())
+                .then(data => {
+                    // Manejar la respuesta del servidor si es necesario
+                    console.log(data);
+                    // Redirigir o mostrar algún mensaje al usuario, por ejemplo
+                    alert('El código Python ha sido enviado correctamente.');
+                    window.location.reload();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // Manejar cualquier error que pueda ocurrir durante la solicitud
+                    alert('Ha ocurrido un error al enviar el código Python.');
+                });
         }
 
         function changeEditorButtonState() {
-            var editorButton = document.getElementById('editorButton');
+            let editorButton = document.getElementById('editorButton');
+            let verifyButton = document.getElementById('verify-button');
+            let executeButton = document.getElementById('execute-button');
 
             if (selectedLanguage === 'python') {
                 editorButton.classList.remove('bg-gray-300', 'text-gray-600');
                 editorButton.classList.add('bg-blue-500', 'text-white');
                 editorButton.disabled = false;
+
+                verifyButton.classList.remove('bg-gray-300', 'text-gray-600');
+                verifyButton.classList.add('bg-blue-700', 'text-white');
+                verifyButton.disabled = false;
+
+                executeButton.classList.remove('bg-gray-300', 'text-gray-600');
+                executeButton.classList.add('bg-blue-700', 'text-white');
+                executeButton.disabled = false;
             } else {
                 editorButton.classList.remove('bg-blue-500', 'text-white');
                 editorButton.classList.add('bbg-gray-300', 'text-gray-600');
                 editorButton.disabled = true;
+
+                verifyButton.classList.remove('bg-blue-700', 'text-white');
+                verifyButton.classList.add('bbg-gray-300', 'text-gray-600');
+                verifyButton.disabled = true;
+
+                executeButton.classList.remove('bg-blue-700', 'text-white');
+                executeButton.classList.add('bbg-gray-300', 'text-gray-600');
+                executeButton.disabled = true;
             }
         }
 
@@ -347,7 +401,170 @@
                 changeView();
             }
         });
+        
+        function setupSocketHandlers() {
+            if (!socket.hasSetupHandlers) {
+                socket.on('execution_output', function (data) {
+                    if (executionActive) {
+                        var outputText = document.getElementById('output-text');
+                        outputText.innerText += data.output + '\n';
+                        outputText.scrollTop = outputText.scrollHeight;
+                        const output = data.output;
+                        const regex = /(\w+):(\d+)/g;
+                        let match;
+                        while ((match = regex.exec(output)) !== null) {
+                            const label = match[1];
+                            const value = parseInt(match[2]);
+                            const now = new Date();
+                            let dataset = chart.data.datasets.find(ds => ds.label === label);
+                            if (!dataset) {
+                                dataset = {
+                                    label: label,
+                                    data: [],
+                                    borderColor: getRandomColor(),
+                                    fill: false
+                                };
+                                chart.data.datasets.push(dataset);
+                            }
+                            dataset.data.push({ x: now, y: value });
+                        }
+                        chart.update();
+                    }
+                });
+    
+                socket.on('execution_complete', function (data) {
+                    var outputText = document.getElementById('output-text');
+                    outputText.innerText += '\n\n' + 'Ejecución completa. Código de salida: ' + data.result;
+                    outputText.scrollTop = outputText.scrollHeight;
+                });
+    
+                socket.hasSetupHandlers = true;
+            }
+        }
+    
+        function initializeChart() {
+            const ctx = document.getElementById('chart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: []
+                },
+                options: {
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'second',
+                                tooltipFormat: 'MMM d, yyyy, h:mm:ss a',
+                                displayFormats: {
+                                    second: 'h:mm:ss a',
+                                    minute: 'h:mm a',
+                                    hour: 'h a',
+                                    day: 'MMM d',
+                                    week: 'MMM d',
+                                    month: 'MMM yyyy',
+                                    quarter: 'MMM yyyy',
+                                    year: 'yyyy'
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Tiempo'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Valor'
+                            }
+                        }
+                    }
+                }
+            });
+            chartInitialized = true;
+        }
+    
+        function executePython() {
+            executionActive = true;
+            document.getElementById('output-text').innerText = '';
+            if (chartInitialized) {
+                chart.destroy();
+                chartInitialized = false;
+            }
+            chart.data.datasets = [];
+            initializeChart();
+            var projectName = document.querySelector('.project-name').innerText;
+            var formData = new FormData();
+            formData.append('project_name', projectName);
+            var pythonContent = Blockly.Arduino.workspaceToCode();
+            var codeWithNewlines = pythonContent.replace(/\n/g, '\\n');
+            formData.append('python_content', codeWithNewlines);
+            fetch('/save_python', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        showAlert('success', '¡Proyecto guardado exitosamente!');
+                        socket.emit('execute_code', { project_name: projectName });
+                    } else {
+                        showAlert('error', 'Hubo un problema al guardar el proyecto.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('error', 'Hubo un problema al guardar el proyecto.');
+                });
+        }
+    
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        function cancelExecution() {
+            executionActive = false;
+            socket.emit('cancel_execution_signal');
+            showAlert('error', 'Ejecución detenida.');
+        }
+    
+        document.addEventListener("DOMContentLoaded", function () {
+            if (!chartInitialized) {
+                initializeChart();
+            }
+        });
+
+        document.getElementById('toggle-chart').addEventListener('click', function() {
+      var chartContainer = document.getElementById('chart-container');
+      if (chartContainer.style.display === 'none') {
+        chartContainer.style.display = 'block';
+        this.textContent = 'Ocultar Gráfico';
+      } else {
+        chartContainer.style.display = 'none';
+        this.textContent = 'Mostrar Gráfico';
+      }
+    });
+
+    document.getElementById('toggle-console').addEventListener('click', function() {
+    var outputContainer = document.getElementById('output-container');
+    if (outputContainer.style.display === 'none') {
+      outputContainer.style.display = 'block';
+      this.textContent = 'Ocultar Consola';
+    } else {
+      outputContainer.style.display = 'none';
+      this.textContent = 'Mostrar Consola';
+    }
+  });
+  
+  document.getElementById('chart-container').style.display = 'block';
     </script>
+    
 </body>
 
 </html>

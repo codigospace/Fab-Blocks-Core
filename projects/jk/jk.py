@@ -1,15 +1,15 @@
-import Modular
+import time
 
 # Global variables
-name = analogInput(1);
 
 # Function definition
 
 def setup():
-      name.init();
+    pass
 
 def loop():
-    name.write(HIGH);
+    print("temperatura:3")
+    time.sleep(1)
 
 # Main
 setup()

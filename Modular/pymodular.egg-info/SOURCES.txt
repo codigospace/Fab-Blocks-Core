@@ -1,0 +1,7 @@
+pymodular.py
+setup.py
+pymodular.egg-info/PKG-INFO
+pymodular.egg-info/SOURCES.txt
+pymodular.egg-info/dependency_links.txt
+pymodular.egg-info/requires.txt
+pymodular.egg-info/top_level.txt

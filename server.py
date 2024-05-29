@@ -2,41 +2,58 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify, s
 import os
 import shutil
 import tempfile
+import ast
+import json
+from datetime import datetime
+import subprocess
+from flask_socketio import SocketIO
+import eventlet
+eventlet.monkey_patch()
+import time
 
 app = Flask(__name__, static_folder='static')
+app.config['SECRET_KEY'] = 'secret!'
+socketio = SocketIO(app, async_mode='eventlet')
 
+def save_data(data):
+    filename = 'data.json'
+    
+    if os.path.exists(filename):
+        with open(filename, 'r') as file:
+            existing_data = json.load(file)
+    else:
+        existing_data = []
+    
+    existing_data.append(data)
+    
+    with open(filename, 'w') as file:
+        json.dump(existing_data, file, indent=4)
+        
 def execute_python_code():
     return 0
 
-# Ruta para la página principal
 @app.route('/')
 def index():
-    # Asegúrate de que el directorio 'projects' exista
     if not os.path.exists('projects'):
         os.makedirs('projects')
     
-    # Obtener la lista de proyectos y ordenarla por fecha de creación
     projects = os.listdir('projects')
     projects = sorted(projects, key=lambda x: os.path.getctime(os.path.join('projects', x)))
     
     return render_template('index.html', projects=projects)
 
-# Ruta para la página de FABBlocks
 @app.route('/fabblocks')
 def fabblocks():
     return render_template('fabblocks.html')
 
-# Ruta para servir imágenes estáticas
 @app.route('/media/<path:filename>')
 def serve_image(filename):
     return app.send_static_file(f'media/{filename}')
 
-# Ruta para servir imágenes estáticas
 @app.route('/img/blocks/<path:filename>')
 def serve_image_lock(filename):
     return app.send_static_file(f'img/blocks/{filename}')
 
-# Ruta para crear un nuevo proyecto
 @app.route('/create_project/<project_name>', methods=['POST'])
 def create_project(project_name):
     path = os.path.join('projects', project_name)
@@ -48,7 +65,6 @@ def create_project(project_name):
     else:
         return jsonify({"status": "error", "message": "Proyecto ya existe."}), 400
 
-# Ruta para eliminar un proyecto
 @app.route('/delete_project/<project_name>', methods=['POST'])
 def delete_project(project_name):
     path = os.path.join('projects', project_name)
@@ -56,7 +72,6 @@ def delete_project(project_name):
         shutil.rmtree(path)
     return redirect(url_for('index'))
 
-# Ruta para editar un proyecto
 @app.route('/edit_project/<project_name>', methods=['GET', 'POST'])
 def edit_project(project_name):
     path = os.path.join('projects', project_name)
@@ -74,18 +89,17 @@ def project_content(project_name):
     fab_file_path = os.path.join('projects', str(project_name), f"{project_name}.fab")
     python_file_path = os.path.join('projects', str(project_name), f"{project_name}.py")
 
-    if os.path.exists(python_file_path):
-        # Si existe un archivo .py, abre y lee su contenido
-        with open(python_file_path, "r") as python_file:
-            python_content = python_file.read()
-        # Renderiza la plantilla 'editor_python.html' con el contenido del archivo .py
-        return render_template('editor_python.html', project=project_name, python_content=python_content)
-    else:
-        # Si no existe un archivo .py, lee el contenido del archivo .fab
+    if os.path.exists(fab_file_path):
         with open(fab_file_path, "r") as fab_file:
             fab_content = fab_file.read()
-        # Renderiza la plantilla 'project_content.html' con el contenido del archivo .fab
         return render_template('project_content.html', project=project_name, fab_content=fab_content)
+    else:
+        if os.path.exists(python_file_path):
+            with open(python_file_path, "r") as python_file:
+                python_content = python_file.read()
+            return render_template('editor_python.html', project=project_name, python_content=python_content)
+        else:
+            return "No se encontró ningún archivo para mostrar", 404
 
 
 @app.route('/save_project', methods=['POST'])
@@ -93,7 +107,6 @@ def save_project():
     project_name = request.form['project_name']
     xml_content = request.form['xml_content']
     
-    # Guardar el XML en un archivo
     fab_file_path = os.path.join('projects', str(project_name), f"{project_name}.fab")
     with open(fab_file_path, "w") as fab_file:
         fab_file.write(xml_content)
@@ -102,27 +115,21 @@ def save_project():
 
 @app.route('/edit_code', methods=['POST'])
 def edit_code():
-    # Obtener el código Python enviado desde el cliente
     code_with_newlines = request.form['code']
     
-    # Reemplazar los caracteres especiales por saltos de línea
     code_python = code_with_newlines.replace('\\n', '\n')
     
-    # Nombre del proyecto
     project_name = request.form['project_name']
     
-    # Ruta donde se guardará el archivo .py
     python_file_path = os.path.join('projects', project_name, f"{project_name}.py")
 
     fab_file_path = os.path.join('projects', project_name, f"{project_name}.fab")
     if os.path.exists(fab_file_path):
         os.remove(fab_file_path)
     
-    # Guardar el código Python en el archivo .py
     with open(python_file_path, "w") as python_file:
         python_file.write(code_python)
     
-    # Renderizar la plantilla 'editor_python.html' y pasar el código Python si es necesario
     return render_template('editor_python.html', code_python=code_python)
 
 @app.route('/save_python', methods=['POST'])
@@ -132,7 +139,6 @@ def save_python():
     project_name = request.form['project_name']
     python_file_path = os.path.join('projects', project_name, f"{project_name}.py")
     
-    # Guardar el código Python en el archivo .py
     with open(python_file_path, "w") as python_file:
         python_file.write(code_python)
     
@@ -140,7 +146,6 @@ def save_python():
 
 @app.route('/import_project', methods=['POST'])
 def import_project():
-    # Verificar si se ha proporcionado un archivo
     if 'file' not in request.files:
         return jsonify({"status": "error", "message": "No se ha proporcionado ningún archivo."}), 400
 
@@ -148,46 +153,37 @@ def import_project():
     if file.filename == '':
         return jsonify({"status": "error", "message": "No se ha seleccionado ningún archivo."}), 400
 
-    # Guardar el archivo temporalmente
     temp_dir = tempfile.mkdtemp()
     file_path = os.path.join(temp_dir, file.filename)
     file.save(file_path)
 
-    # Verificar la extensión del archivo y proceder en consecuencia
     file_extension = os.path.splitext(file.filename)[1].lower()
     project_name = os.path.splitext(file.filename)[0]
 
     if file_extension == '.fab':
-        # Crear un nuevo directorio para el proyecto
         project_path = os.path.join('projects', project_name)
         os.makedirs(project_path)
 
-        # Mover el archivo .fab al directorio del proyecto
         shutil.move(file_path, os.path.join(project_path, f"{project_name}.fab"))
 
         return jsonify({"status": "success", "message": "Proyecto importado exitosamente."}), 201
 
     elif file_extension == '.py':
-        # Crear un nuevo directorio para el proyecto
         project_path = os.path.join('projects', project_name)
         os.makedirs(project_path)
 
-        # Mover el archivo .py al directorio del proyecto
         shutil.move(file_path, os.path.join(project_path, f"{project_name}.py"))
 
         return jsonify({"status": "success", "message": "Proyecto importado exitosamente."}), 201
 
     else:
-        # Eliminar el archivo temporal
         os.remove(file_path)
         return jsonify({"status": "error", "message": "Formato de archivo no compatible."}), 400
 
 @app.route('/export_project/<project_name>', methods=['GET'])
 def export_project(project_name):
-    # Ruta donde se encuentra el archivo a exportar
     project_path = os.path.join('projects', project_name)
     
-    # Verificar si hay un archivo .fab o .py en la carpeta del proyecto
     fab_file_path = os.path.join(project_path, f"{project_name}.fab")
     py_file_path = os.path.join(project_path, f"{project_name}.py")
 
@@ -202,5 +198,89 @@ def export_project(project_name):
     else:
         return "No se encontró ningún archivo para exportar", 404
 
+@app.route('/verify_code', methods=['POST'])
+def verify_code():
+    codigo = request.form['codigo']
+    try:
+        codigo_clean = eval(f'f"""{codigo}"""')
+        print(codigo_clean)
+        ast.parse(codigo_clean)
+        return jsonify({"status": "success", "message": "El código es válido."})
+    except SyntaxError:
+        return jsonify({"status": "error", "message": "Error de sintaxis"})
+    
+@app.route('/encuesta')
+def review():
+    return render_template('review.html')
+
+@app.route('/submit_survey', methods=['POST'])
+def submit_survey():
+    tools_opinion = request.form['tools_opinion']
+    session_opinion = request.form['session_opinion']
+    preferences = request.form['preferences']
+    current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    data = {
+        'timestamp': current_datetime,
+        'tools_opinion': tools_opinion,
+        'session_opinion': session_opinion,
+        'preferences': preferences
+    }
+    
+    save_data(data)
+    return redirect(url_for('index'))
+
+execution_active = True
+current_process = None
+
+@socketio.on('cancel_execution_signal')
+def cancel_execution_signal():
+    global execution_active
+    execution_active = False
+
+@socketio.on('execute_code')
+def execute_code(data):
+    global current_process
+    project_name = data['project_name']
+
+    global execution_active
+    execution_active = True
+    python_file_path = os.path.join('projects', project_name, f"{project_name}.py")
+
+    env = os.environ.copy()
+    env['PYTHONUNBUFFERED'] = '1'  # Desactivar el almacenamiento en búfer de stdout y stderr
+    env['PYTHONIOENCODING'] = 'utf-8'  # Asegurar la codificación utf-8 para la salida
+
+    # Terminar el subproceso actual si está en ejecución
+    if current_process and current_process.poll() is None:
+        current_process.terminate()
+        current_process.wait()
+
+    # Iniciar un nuevo subproceso
+    current_process = subprocess.Popen(
+        ['python', '-u', python_file_path],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        env=env
+    )
+
+    # Leer las líneas de salida y enviarlas
+    try:
+        while execution_active and not current_process.poll():
+            output = current_process.stdout.readline()
+            if output:
+                socketio.emit('execution_output', {'output': output.strip()})
+                socketio.sleep(0)
+                print(output.strip())
+            else:
+                break
+    finally:
+        if not execution_active:
+            current_process.kill()  # Cambio aquí para asegurar que el proceso se detenga
+        current_process.wait()
+        socketio.emit('execution_complete', {'result': current_process.returncode})
+
+
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    socketio.run(app, host='0.0.0.0', port=5000, debug=False)

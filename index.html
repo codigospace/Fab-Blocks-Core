@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Python Execution</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.2.0/socket.io.js"></script>
+</head>
+<body>
+    <h1>Real-Time Python Execution</h1>
+    <textarea id="code" rows="5" cols="50"># Escriba aquí su código Python</textarea>
+    <button id="executeBtn">Ejecutar Código</button>
+    <div id="output"></div>
+
+    <script>
+        const socket = io();
+
+        const codeTextarea = document.getElementById('code');
+        const executeBtn = document.getElementById('executeBtn');
+        const outputDiv = document.getElementById('output');
+
+        executeBtn.addEventListener('click', () => {
+            const code = codeTextarea.value;
+            outputDiv.innerHTML = ''; // Limpiar la salida anterior
+            socket.emit('execute_code', code);
+        });
+
+        socket.on('output', (data) => {
+            console.log("acaaaa")
+            outputDiv.innerHTML += `<p>${data}</p>`;
+        });
+    </script>
+</body>
+</html>

@@ -2,127 +2,336 @@
 <html>
 
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title>{{ project }}</title>
-    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='media/codigo.ico') }}">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='tailwind.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='flowbite.css') }}">
-    <link rel="stylesheet" type="text/css"
-        href="{{ url_for('static', filename='javascript/highlight/styles/default.css') }}">
-    <script src="{{ url_for('static', filename='tailwind.js') }}"></script>
-    <script src="{{ url_for('static', filename='flowbite.js') }}"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='codemirror.min.css') }}">
-    <script src="{{ url_for('static', filename='codemirror.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='python.min.js') }}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/pylint@2.14.4/dist/pylint.js"></script>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>{{ project }}</title>
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='media/codigo.ico') }}">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='tailwind.css') }}">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='flowbite.css') }}">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='javascript/highlight/styles/default.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='codemirror.min.css') }}">
+  <script src="{{ url_for('static', filename='tailwind.js') }}"></script>
+  <script src="{{ url_for('static', filename='flowbite.js') }}"></script>
+  <script src="{{ url_for('static', filename='codemirror.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='python.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='socket.io.js') }}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0"></script>
 </head>
 
 <body>
   {% include 'header_index.html' %}
-  <div class="flex-auto flex-col md:flex-row flex-wrap items-center justify-start m-2 p-0">
-    <button type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5" onclick="verifySyntax()">Verificar Sintaxis</button>
-    <button type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5">Ejecutar</button>
-    <button type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5">Nuevo</button>
-    <button type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5">Abrir</button>
-    <button type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5" onclick="saveProject()">Guardar</button>
+  <div class="flex flex-wrap items-center justify-start m-2 p-0 space-x-2">
+    <button type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5"
+      onclick="verifySyntax()">Verificar Sintaxis</button>
+    <button type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5"
+      onclick="executeCode()">Ejecutar</button>
+    <button type="button" class="text-white bg-red-700 font-medium rounded-lg text-sm px-5 py-2.5"
+      onclick="cancelExecution()">Detener Ejecución</button>
+    <button type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5"
+      onclick="showCreateProjectModal()">Nuevo</button>
+    <button type="button" onclick="showImportModal()"
+      class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5">Abrir</button>
+    <button type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5"
+    onclick="saveProject()">Guardar</button>
+    <button id="toggle-chart" type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5">Ocultar Gráfico</button>
+    <button id="toggle-console" type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5">Ocultar Consola</button>
+
   </div>
 
-  <div id="boxEditor" class="mx-auto md:w-auto w-full px-5 md:px-40 md:pt-3">
-    <textarea id="editor">{{ python_content }}</textarea>
-    <script>
-      var editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
-        mode: "python",
-        lineNumbers: true,
-        theme: "default",
-        autofocus: true
-      });
-    </script>
+  <div class="flex flex-col md:flex-row mx-auto w-full px-4 md:px-20 pt-3 space-y-4 md:space-y-0 md:space-x-4">
+    <div id="boxEditor" class="w-full md:w-1/2 px-0">
+      <textarea id="editor">{{ python_content }}</textarea>
+      <script>
+        var editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
+          mode: "python",
+          lineNumbers: true,
+          theme: "default",
+          autofocus: true
+        });
+      </script>
+    </div>
+    <div id="chart-container" class="w-full md:w-1/2 mt-4 md:mt-0 p-4 border border-gray-300 rounded relative">
+      <h3 class="font-bold mb-2">Gráfico en tiempo real:</h3>
+      <canvas id="chart"></canvas>
+    </div>
   </div>
-    <script>
-        
+
+  <div id="output-container" class="mt-4 p-4 border border-gray-300 rounded mx-4 md:mx-20">
+    <h3 class="font-bold mb-2">Salida:</h3>
+    <pre id="output-text" class="overflow-auto h-40"></pre>
+  </div>
+  <script>
     function verifySyntax() {
+      saveProject(true); // Llamar a saveProject en modo silencioso
+      var formData = new FormData();
       var pythonContent = editor.getValue();
+      var codeWithNewlines = pythonContent.replace(/\n/g, '\\n');
 
-      // Use Pylint for online linting
-      pylint.lint(pythonContent, function (report) {
-        var message = "";
-        if (report.messages.length === 0) {
-          message = "Sintaxis correcta"; // No errors found
-        } else {
-          message = "<ul>";
-          for (var i = 0; i < report.messages.length; i++) {
-            message += "<li>" + report.messages[i].msg + "</li>";
+      formData.append('codigo', codeWithNewlines);
+      console.log(codeWithNewlines);
+      fetch('/verify_code', {
+        method: 'POST',
+        body: formData
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status == 'success') {
+            showAlert('success', 'Sintaxis Correcta!');
+          } else {
+            showAlert('warning', 'Sintaxis incorrecta');
           }
-          message += "</ul>";
-        }
-
-        // Display the message (consider using a modal or dedicated area)
-        console.log(message); // Replace with appropriate display logic
-      });
+          console.log(data);
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showAlert('error', 'Sintaxis incorrecta :(');
+        });
     }
-        function saveProject() {
-            var projectName = document.querySelector('.project-name').innerText;
 
-            var formData = new FormData();
-            formData.append('project_name', projectName);
+    function saveProject(silent = false) { // Añadir un parámetro para el modo silencioso
+      var projectName = document.querySelector('.project-name').innerText;
+      var formData = new FormData();
+      formData.append('project_name', projectName);
 
-            // Obtener el contenido del editor de CodeMirror
-            var pythonContent = editor.getValue();
-            var codeWithNewlines = pythonContent.replace(/\n/g, '\\n');
+      var pythonContent = editor.getValue();
+      var codeWithNewlines = pythonContent.replace(/\n/g, '\\n');
+      formData.append('python_content', codeWithNewlines);
 
-            formData.append('python_content', codeWithNewlines);
+      fetch('/save_python', {
+        method: 'POST',
+        body: formData
+      })
+        .then(response => response.json())
+        .then(data => {
+          console.log(data);
+          if (!silent) { // Solo mostrar alerta si no es modo silencioso
+            showAlert('success', '¡Proyecto guardado exitosamente!');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          if (!silent) { // Solo mostrar alerta si no es modo silencioso
+            showAlert('error', '¡Ocurrió un error al guardar el proyecto!');
+          }
+        });
+    }
 
-            // Enviar la información al servidor
-            fetch('/save_python', {
-                method: 'POST',
-                body: formData
-            })
-                .then(response => response.json())
-                .then(data => {
-                    console.log(data);
-                    // Mostrar mensaje de éxito
-                    showAlert('success', '¡Proyecto guardado exitosamente!');
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    // Mostrar mensaje de error
-                    showAlert('error', '¡Ocurrió un error al guardar el proyecto!');
-                });
-        }
+    function showAlert(type, message) {
+      const existingAlert = document.querySelector('.alert');
+      if (existingAlert) {
+        existingAlert.remove();
+      }
+      const alert = document.createElement('div');
+      alert.classList.add('fixed', 'top-0', 'right-0', 'm-5', 'px-4', 'py-2', 'rounded', 'shadow-lg');
+      if (type === 'success') {
+        alert.classList.add('bg-green-500', 'text-white');
+      } else if (type === 'warning') {
+        alert.classList.add('bg-orange-500', 'text-white');
+      } else if (type === 'error') {
+        alert.classList.add('bg-red-500', 'text-white');
+      }
+      alert.innerText = message;
+      document.body.appendChild(alert);
+      setTimeout(() => {
+        alert.remove();
+      }, 1500);
+    }
 
+    var socket = io.connect('http://' + document.domain + ':' + location.port);
 
-        function showAlert(type, message) {
-            // Eliminar alerta existente si hay alguna
-            const existingAlert = document.querySelector('.alert');
-            if (existingAlert) {
-                existingAlert.remove();
+    socket.on('connect', function () {
+      console.log('Connected');
+      setupSocketHandlers(); // Llamar a setupSocketHandlers después de la conexión
+    });
+
+    socket.on('disconnect', function () {
+      console.log('Disconnected');
+    });
+
+    var executionActive = true;
+    var chart;  // Variable para el gráfico de Chart.js
+    var chartInitialized = false;  // Variable para controlar la inicialización del gráfico
+
+    function setupSocketHandlers() {
+      // Evitar agregar manejadores múltiples
+      if (!socket.hasSetupHandlers) {
+        socket.on('execution_output', function (data) {
+          if (executionActive) {
+            console.log(data);
+            var outputText = document.getElementById('output-text');
+            outputText.innerText += data.output + '\n';
+            outputText.scrollTop = outputText.scrollHeight;
+
+            const output = data.output;
+            const regex = /(\w+):(\d+)/g;
+            let match;
+
+            while ((match = regex.exec(output)) !== null) {
+              const label = match[1];
+              const value = parseInt(match[2]);
+              const now = new Date();
+
+              let dataset = chart.data.datasets.find(ds => ds.label === label);
+
+              if (!dataset) {
+                dataset = {
+                  label: label,
+                  data: [],
+                  borderColor: getRandomColor(),
+                  fill: false
+                };
+                chart.data.datasets.push(dataset);
+              }
+
+              dataset.data.push({ x: now, y: value });
             }
 
-            // Crear nueva alerta
-            const alert = document.createElement('div');
-            alert.classList.add('fixed', 'top-0', 'right-0', 'm-5', 'px-4', 'py-2', 'rounded', 'shadow-lg');
+            chart.update();
+          }
+        });
 
-            // Establecer color de acuerdo al tipo
-            if (type === 'success') {
-                alert.classList.add('bg-green-500', 'text-white');
-            } else if (type === 'error') {
-                alert.classList.add('bg-red-500', 'text-white');
+        socket.on('execution_complete', function (data) {
+          var outputText = document.getElementById('output-text');
+          outputText.innerText += '\n\n' + 'Ejecución completa. Código de salida: ' + data.result;
+          outputText.scrollTop = outputText.scrollHeight;
+        });
+
+        socket.hasSetupHandlers = true;
+      }
+    }
+
+    function initializeChart() {
+      const ctx = document.getElementById('chart').getContext('2d');
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: []
+        },
+        options: {
+          scales: {
+            x: {
+              type: 'time',
+              time: {
+                unit: 'second',
+                tooltipFormat: 'MMM d, yyyy, h:mm:ss a',
+                displayFormats: {
+                  second: 'h:mm:ss a',
+                  minute: 'h:mm a',
+                  hour: 'h a',
+                  day: 'MMM d',
+                  week: 'MMM d',
+                  month: 'MMM yyyy',
+                  quarter: 'MMM yyyy',
+                  year: 'yyyy'
+                }
+              },
+              title: {
+                display: true,
+                text: 'Tiempo'
+              }
+            },
+            y: {
+              title: {
+                display: true,
+                text: 'Valor'
+              }
             }
-
-            // Establecer contenido del mensaje
-            alert.innerText = message;
-
-            // Agregar alerta al documento
-            document.body.appendChild(alert);
-
-            // Desvanecer la alerta después de 3 segundos
-            setTimeout(() => {
-                alert.remove();
-            }, 3000);
+          }
         }
-    </script>
+      });
+      chartInitialized = true;
+    }
+
+    function executeCode() {
+      executionActive = true;
+      document.getElementById('output-text').innerText = ''; // Limpiar el contenido del contenedor de salida
+
+      if (chartInitialized) {
+        chart.destroy(); // Destruir el gráfico existente si está inicializado
+        chartInitialized = false; // Reiniciar el estado de inicialización del gráfico
+      }
+
+      // Asegurarse de que los datasets estén vacíos antes de inicializar el nuevo gráfico
+      chart.data.datasets = [];
       
+      initializeChart(); // Inicializar un nuevo gráfico
+
+      var projectName = document.querySelector('.project-name').innerText;
+      var formData = new FormData();
+      formData.append('project_name', projectName);
+
+      var pythonContent = editor.getValue();
+      var codeWithNewlines = pythonContent.replace(/\n/g, '\\n');
+      formData.append('python_content', codeWithNewlines);
+
+      fetch('/save_python', {
+        method: 'POST',
+        body: formData
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success') {
+            showAlert('success', '¡Proyecto guardado exitosamente!');
+            // Emitir evento de ejecución del código a través de WebSocket
+            socket.emit('execute_code', { project_name: projectName });
+          } else {
+            showAlert('error', 'Error al guardar el proyecto');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showAlert('error', '¡Ocurrió un error al guardar el proyecto!');
+        });
+    }
+
+    function cancelExecution() {
+      executionActive = false;
+      socket.emit('cancel_execution_signal');
+      showAlert('error', 'Ejecución detenida.');
+    }
+
+    function getRandomColor() {
+      const letters = '0123456789ABCDEF';
+      let color = '#';
+      for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+      }
+      return color;
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      if (!chartInitialized) {
+        initializeChart(); // Inicializar el gráfico cuando el documento esté listo
+      }
+    });
+
+    document.getElementById('toggle-chart').addEventListener('click', function() {
+      var chartContainer = document.getElementById('chart-container');
+      if (chartContainer.style.display === 'none') {
+        chartContainer.style.display = 'block';
+        this.textContent = 'Ocultar Gráfico';
+      } else {
+        chartContainer.style.display = 'none';
+        this.textContent = 'Mostrar Gráfico';
+      }
+    });
+
+    document.getElementById('toggle-console').addEventListener('click', function() {
+    var outputContainer = document.getElementById('output-container');
+    if (outputContainer.style.display === 'none') {
+      outputContainer.style.display = 'block';
+      this.textContent = 'Ocultar Consola';
+    } else {
+      outputContainer.style.display = 'none';
+      this.textContent = 'Mostrar Consola';
+    }
+  });
+
+    document.getElementById('chart-container').style.display = 'block';
+
+  </script>
 </body>
 
 </html>

@@ -1201,7 +1201,7 @@
                 } else if (programmingLanguage === 'python') {
                     __p += 'time.sleep(' +
                     ((__t = (delay_time)) == null ? '' : __t) +
-                    ');\n';
+                    ')\n';
                 }
             }
             return __p
@@ -2292,10 +2292,14 @@
             var __t, __p = '',
                 __e = _.escape;
             with(obj) {
-                __p += 'Serial.print(' +
-                    ((__t = (content)) == null ? '' : __t) +
-                    ');\n';
-
+                
+                if (programmingLanguage === 'cpp') {
+                    __p += 'Serial.print(' +
+                        ((__t = (content)) == null ? '' : __t) +
+                        ');\n';
+                } else if (programmingLanguage === 'python') {
+                    __p += 'print(' + content +')\n'
+                }
             }
             return __p
         };
@@ -2763,8 +2767,14 @@
             var __t, __p = '',
                 __e = _.escape;
             with(obj) {
-                __p += ((__t = (name_mod)) == null ? '' : __t) +
-                    '.init();\n';
+                if (programmingLanguage === 'cpp') {
+                    __p += ((__t = (name_mod)) == null ? '' : __t) +
+                        '.init();\n';
+                } else if (programmingLanguage === 'python') {
+                    __p += ((__t = (name_mod)) == null ? '' : __t) +
+                        '.init()\n';
+                }
+
             }
             return __p
         };
@@ -2818,7 +2828,7 @@
                 if (programmingLanguage === 'cpp') {
                     __p += dropdown_mod + ' ' + name_mod + '(' + dropdown_pin + ');\n';
                 } else if (programmingLanguage === 'python') {
-                    __p += name_mod + ' = ' + dropdown_mod + '(' + dropdown_pin + ');\n';
+                    __p += name_mod + ' = Modular.' + dropdown_mod + '(' + dropdown_pin + ')\n';
                 }
 
             }
@@ -2842,10 +2852,14 @@
             var __t, __p = '',
                 __e = _.escape;
             with(obj) {
-                __p += ((__t = (dropdown_pin)) == null ? '' : __t) + '.write(' +
-                    ((__t = (dropdown_stat)) == null ? '' : __t) +
-                    ');\n';
-
+                if (programmingLanguage === 'cpp') {
+                    __p += ((__t = (dropdown_pin)) == null ? '' : __t) + '.write(' +
+                        ((__t = (dropdown_stat)) == null ? '' : __t) +
+                        ');\n';
+                } else if (programmingLanguage === 'python') {
+                    let statValue = (dropdown_stat === 'HIGH') ? '1' : '0';
+                    __p += ((__t = (dropdown_pin)) == null ? '' : __t) + '.write(' + statValue + ')\n';
+                }
             }
             return __p
         };
@@ -3294,8 +3308,11 @@
                 'name_mod' : name_mod
             });
 
-            dropdown_mod + ' ' + name_mod + '(' + dropdown_pin + ');\n';
-
+            if (programmingLanguage == 'cpp') {
+                dropdown_mod + ' ' + name_mod + '(' + dropdown_pin + ');\n'
+            } else if(programmingLanguage == 'python') {
+                'Modular' + dropdown_mod + ' ' + name_mod + '(' + dropdown_pin + ')\n'
+            }
             var a = RoboBlocks.findPinMode(dropdown_pin);
             code += a['code'];
             dropdown_pin = a['pin'];
@@ -9293,10 +9310,14 @@
             var a = RoboBlocks.findPinMode(content);
             code += a['code'];
             content = a['pin'];
-            Blockly.Arduino.setups_['setup_serial'] = JST['serial_print_setups']({
-                'bitrate': profiles.
-                default.serial
-            });
+
+            if (programmingLanguage === 'cpp') {
+                Blockly.Arduino.setups_['setup_serial'] = JST['serial_print_setups']({
+                    'bitrate': profiles.
+                    default.serial
+                });
+            }
+            
             code += JST['serial_print']({
                 'content': content
             });

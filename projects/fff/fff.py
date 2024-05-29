@@ -1,15 +1,14 @@
 # Global variables
-int i=0;
 
 # Function definition
 
 def setup():
 
-      n: int = 10;
+
+    Serial.begin(115200);
 
 def loop():
-    i=i + 1;
-    n=n + 1;
+    Serial.print("ffff");
 
 # Main
 setup()

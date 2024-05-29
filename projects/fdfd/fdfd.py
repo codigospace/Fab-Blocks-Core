@@ -1,8 +1,6 @@
 # Global variables
 
 # Function definition
-def func_sin_retorno():
-  if (True):
 
 def setup():
     pass
