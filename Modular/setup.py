@@ -11,7 +11,7 @@ if platform.system() == 'Linux' and 'arm' in platform.machine():
 setup(
     name='pymodular',
     version='0.1',
-    py_modules=['pymodular'],
+    py_modules=['pymodular2'],
 )
 
 setup(
