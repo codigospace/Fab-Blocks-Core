@@ -11,7 +11,8 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='visualino.css') }}">
     <script src="{{ url_for('static', filename='tailwind.js') }}"></script>
     <script src="{{ url_for('static', filename='flowbite.js') }}"></script>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='javascript/highlight/styles/default.css') }}">
+    <link rel="stylesheet" type="text/css"
+        href="{{ url_for('static', filename='javascript/highlight/styles/default.css') }}">
     <script src="{{ url_for('static', filename='socket.io.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0"></script>
@@ -24,9 +25,9 @@
         <button type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5"
             id="verify-button">Verificar</button>
         <button type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5"
-            id="execute-button" onclick="executePython()">Ejecutar</button>    
+            id="execute-button" onclick="executePython()">Ejecutar</button>
         <button type="button" class="text-white bg-red-700 font-medium rounded-lg text-sm px-5 py-2.5"
-        onclick="cancelExecution()">Detener Ejecución</button>
+            onclick="cancelExecution()">Detener Ejecución</button>
         <button type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5"
             onclick="showCreateProjectModal()">Nuevo</button>
         <button type="button" onclick="showImportModal()"
@@ -50,20 +51,26 @@
             class="bg-gray-300 border border-gray-300 text-gray-900 text-sm rounded-lg p-2.5">
             Editar Python
         </button>
-        <button id="toggle-chart" type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5">Ocultar Gráfico</button>
-        <button id="toggle-console" type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5">Ocultar Consola</button>
+        <select id="toggle-visibility"
+            class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 w-auto md:w-48 p-2.5">
+            <option value="show-all">Mostrar Todo</option>
+            <option value="show-chart">Mostrar Gráfico</option>
+            <option value="show-console">Mostrar Consola</option>
+            <option value="show-program">Mostrar Programa</option>
+        </select>
     </div>
-    <div class="flex flex-col lg:flex-row mx-auto px-4 lg:px-20 pt-3 space-y-4 lg:space-y-0 lg:space-x-4">
-        <div id="chart-container" class="w-1/2 lg:w-1/2 mt-4 lg:mt-0 p-4 border border-gray-300 rounded relative">
+    <div class="flex flex-col lg:flex-row mx-20 px-4 lg:px-20 pt-3 space-y-4 lg:space-y-0 lg:space-x-4">
+        <div id="chart-container" class="flex-1 lg:w-1/2 p-4 border border-gray-300 rounded relative h-full">
             <h3 class="font-bold mb-2">Gráfico en tiempo real:</h3>
             <canvas id="chart"></canvas>
         </div>
-        <div id="output-container" class="w-1/2 lg:w-1/2 p-4 border border-gray-300 rounded mt-4 lg:mt-0">
+        <div id="output-container" class="flex-1 lg:w-1/2 p-4 border border-gray-300 rounded h-full">
             <h3 class="font-bold mb-2">Salida:</h3>
-            <pre id="output-text" class="overflow-auto h-40"></pre>
+            <pre id="output-text" class="overflow-auto h-full"></pre>
         </div>
     </div>
     
+
     {{ fab_content|safe }}
     <div id="wrap" style="max-height: 80%;">
         <div id="blockly" style="float: left; width: 66%;"></div>
@@ -302,21 +309,21 @@
 
         var socket = io.connect('http://' + document.domain + ':' + location.port);
 
-        socket.on('connect', function() {
+        socket.on('connect', function () {
             console.log('Connected');
             setupSocketHandlers();
         });
 
-        socket.on('disconnect', function() {
+        socket.on('disconnect', function () {
             console.log('Disconnected');
         });
 
-        socket.on('execution_output', function(data) {
+        socket.on('execution_output', function (data) {
             console.log('Output:', data.output);
             // Actualiza el estado de ejecución en tu frontend según sea necesario
         });
 
-        socket.on('execution_complete', function(data) {
+        socket.on('execution_complete', function (data) {
             console.log('Execution complete. Result:', data.result);
             // Haz lo que necesites hacer cuando la ejecución del código haya terminado
         });
@@ -400,7 +407,7 @@
                 changeView();
             }
         });
-        
+
         function setupSocketHandlers() {
             if (!socket.hasSetupHandlers) {
                 socket.on('execution_output', function (data) {
@@ -430,17 +437,17 @@
                         chart.update();
                     }
                 });
-    
+
                 socket.on('execution_complete', function (data) {
                     var outputText = document.getElementById('output-text');
                     outputText.innerText += '\n\n' + 'Ejecución completa. Código de salida: ' + data.result;
                     outputText.scrollTop = outputText.scrollHeight;
                 });
-    
+
                 socket.hasSetupHandlers = true;
             }
         }
-    
+
         function initializeChart() {
             const ctx = document.getElementById('chart').getContext('2d');
             chart = new Chart(ctx, {
@@ -483,7 +490,7 @@
             });
             chartInitialized = true;
         }
-    
+
         function executePython() {
             executionActive = true;
             document.getElementById('output-text').innerText = '';
@@ -517,7 +524,7 @@
                     showAlert('error', 'Hubo un problema al guardar el proyecto.');
                 });
         }
-    
+
         function getRandomColor() {
             const letters = '0123456789ABCDEF';
             let color = '#';
@@ -532,38 +539,49 @@
             socket.emit('cancel_execution_signal');
             showAlert('error', 'Ejecución detenida.');
         }
-    
+
         document.addEventListener("DOMContentLoaded", function () {
-            if (!chartInitialized) {
-                initializeChart();
-            }
+            var chartContainer = document.getElementById('chart-container');
+            var outputContainer = document.getElementById('output-container');
+            var wrapContainer = document.getElementById('wrap');
+
+            chartContainer.style.display = 'none';
+            outputContainer.style.display = 'none';
+            wrapContainer.style.display = 'block';
         });
 
-        document.getElementById('toggle-chart').addEventListener('click', function() {
-      var chartContainer = document.getElementById('chart-container');
-      if (chartContainer.style.display === 'none') {
-        chartContainer.style.display = 'block';
-        this.textContent = 'Ocultar Gráfico';
-      } else {
-        chartContainer.style.display = 'none';
-        this.textContent = 'Mostrar Gráfico';
-      }
-    });
+        document.getElementById('toggle-visibility').addEventListener('change', function () {
+            var value = this.value;
+            var chartContainer = document.getElementById('chart-container');
+            var outputContainer = document.getElementById('output-container');
+            var wrapContainer = document.getElementById('wrap');
 
-    document.getElementById('toggle-console').addEventListener('click', function() {
-    var outputContainer = document.getElementById('output-container');
-    if (outputContainer.style.display === 'none') {
-      outputContainer.style.display = 'block';
-      this.textContent = 'Ocultar Consola';
-    } else {
-      outputContainer.style.display = 'none';
-      this.textContent = 'Mostrar Consola';
-    }
-  });
-  
-  document.getElementById('chart-container').style.display = 'block';
+            switch (value) {
+                case 'show-chart':
+                    chartContainer.style.display = 'block';
+                    outputContainer.style.display = 'none';
+                    wrapContainer.style.display = 'none';
+                    break;
+                case 'show-console':
+                    chartContainer.style.display = 'none';
+                    outputContainer.style.display = 'block';
+                    wrapContainer.style.display = 'none';
+                    break;
+                case 'show-program':
+                    chartContainer.style.display = 'none';
+                    outputContainer.style.display = 'none';
+                    wrapContainer.style.display = 'block';
+                    break;
+                case 'show-all':
+                default:
+                    chartContainer.style.display = 'none';
+                    outputContainer.style.display = 'none';
+                    wrapContainer.style.display = 'block';
+                break;
+            }
+        });
     </script>
-    
+
 </body>
 
 </html>

@@ -291,7 +291,6 @@ def execute_code(data):
             if output:
                 socketio.emit('execution_output', {'output': output.strip()})
                 socketio.sleep(0)
-                print(output.strip())
             else:
                 break
     finally:
@@ -301,4 +300,4 @@ def execute_code(data):
         socketio.emit('execution_complete', {'result': current_process.returncode})
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000, debug=False)
+    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
