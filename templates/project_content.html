@@ -541,6 +541,12 @@
         }
 
         document.addEventListener("DOMContentLoaded", function () {
+            if (!chartInitialized) {
+            var chartContainer = document.getElementById('chart-container');
+                initializeChart();
+            var outputContainer = document.getElementById('output-container');
+            }
+            
             var chartContainer = document.getElementById('chart-container');
             var outputContainer = document.getElementById('output-container');
             var wrapContainer = document.getElementById('wrap');
