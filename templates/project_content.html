@@ -20,50 +20,50 @@
 
 <body>
     {% include 'header_index.html' %}
-    <div class="flex flex-col md:flex-row flex-wrap items-center justify-start m-2 p-0">
-        <button type="button" class="text-white bg-blue-700 font-medium rounded-lg sm:text-lg text-sm sm:px-6 px-5 sm:py-3 py-2.5"
+    <div class="flex-auto flex-col md:flex-row flex-wrap items-center justify-start m-2 p-0">
+        <button type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5"
             id="verify-button">Verificar</button>
-        <button type="button" class="text-white bg-blue-700 font-medium rounded-lg sm:text-lg text-sm sm:px-6 px-5 sm:py-3 py-2.5"
+        <button type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5"
             id="execute-button" onclick="executePython()">Ejecutar</button>
-        <button type="button" class="text-white bg-red-700 font-medium rounded-lg sm:text-lg text-sm sm:px-6 px-5 sm:py-3 py-2.5"
+        <button type="button" class="text-white bg-red-700 font-medium rounded-lg text-sm px-5 py-2.5"
             onclick="cancelExecution()">Detener Ejecución</button>
-        <button type="button" class="text-white bg-blue-700 font-medium rounded-lg sm:text-lg text-sm sm:px-6 px-5 sm:py-3 py-2.5"
+        <button type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5"
             onclick="showCreateProjectModal()">Nuevo</button>
         <button type="button" onclick="showImportModal()"
-            class="text-white bg-blue-700 font-medium rounded-lg sm:text-lg text-sm sm:px-6 px-5 sm:py-3 py-2.5">Abrir</button>
-        <button type="button" class="text-white bg-blue-700 font-medium rounded-lg sm:text-lg text-sm sm:px-6 px-5 sm:py-3 py-2.5"
+            class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5">Abrir</button>
+        <button type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5"
             onclick="saveProject()">Guardar</button>
 
         <select id="languageSelector" onchange="changeLanguage()"
-            class="bg-white border border-gray-300 text-gray-900 sm:text-lg text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 sm:w-48 w-auto p-2.5">
+            class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 w-auto md:w-48 p-2.5">
             <option value="cpp">C++</option>
             <option value="python">Python</option>
         </select>
 
         <select id="viewSelector" onchange="changeView()"
-            class="bg-white border border-gray-300 text-gray-900 sm:text-lg text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 sm:w-48 w-auto p-2.5">
+            class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 w-auto md:w-48 p-2.5">
             <option value="bq-code">Bloques-Codigo</option>
             <option value="bq">Bloques</option>
             <option value="code">Codigo</option>
         </select>
         <button id="editorButton" onclick="editPythonCode()"
-            class="bg-gray-300 border border-gray-300 text-gray-900 sm:text-lg text-sm rounded-lg p-2.5">
+            class="bg-gray-300 border border-gray-300 text-gray-900 text-sm rounded-lg p-2.5">
             Editar Python
         </button>
         <select id="toggle-visibility"
-            class="bg-white border border-gray-300 text-gray-900 sm:text-lg text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 sm:w-48 w-auto p-2.5">
+            class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 w-auto md:w-48 p-2.5">
             <option value="show-chart">Mostrar Gráfico</option>
             <option value="show-console">Mostrar Consola</option>
             <option value="show-program">Mostrar Programa</option>
         </select>
     </div>
-    <div class="flex flex-col lg:flex-row mx-2 sm:mx-10 lg:mx-20 px-4 lg:px-20 pt-3 space-y-4 lg:space-y-0 lg:space-x-4">
+    <div class="flex flex-col lg:flex-row mx-20 px-4 lg:px-20 pt-3 space-y-4 lg:space-y-0 lg:space-x-4">
         <div id="chart-container" class="flex-1 lg:w-1/2 p-4 border border-gray-300 rounded relative h-full">
-            <h3 class="font-bold sm:text-lg text-base mb-2">Gráfico en tiempo real:</h3>
+            <h3 class="font-bold mb-2">Gráfico en tiempo real:</h3>
             <canvas id="chart"></canvas>
         </div>
         <div id="output-container" class="flex-1 lg:w-1/2 p-4 border border-gray-300 rounded h-full">
-            <h3 class="font-bold sm:text-lg text-base mb-2">Salida:</h3>
+            <h3 class="font-bold mb-2">Salida:</h3>
             <pre id="output-text" class="overflow-auto h-full"></pre>
         </div>
     </div>
