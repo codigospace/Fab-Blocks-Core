@@ -2813,7 +2813,7 @@
                 if (programmingLanguage === 'cpp') {
                     __p += '#include <Modular.h>\n';
                 } else if (programmingLanguage === 'python') {
-                    __p += 'import Modular\n';
+                    __p += 'import pymodular\n';
                 }
 
             }
@@ -2828,7 +2828,7 @@
                 if (programmingLanguage === 'cpp') {
                     __p += dropdown_mod + ' ' + name_mod + '(' + dropdown_pin + ');\n';
                 } else if (programmingLanguage === 'python') {
-                    __p += name_mod + ' = Modular.' + dropdown_mod + '(' + dropdown_pin + ')\n';
+                    __p += name_mod + ' = pymodular.' + dropdown_mod + '(' + dropdown_pin + ')\n';
                 }
 
             }
@@ -3311,7 +3311,7 @@
             if (programmingLanguage == 'cpp') {
                 dropdown_mod + ' ' + name_mod + '(' + dropdown_pin + ');\n'
             } else if(programmingLanguage == 'python') {
-                'Modular' + dropdown_mod + ' ' + name_mod + '(' + dropdown_pin + ')\n'
+                'pymodular' + dropdown_mod + ' ' + name_mod + '(' + dropdown_pin + ')\n'
             }
             var a = RoboBlocks.findPinMode(dropdown_pin);
             code += a['code'];
