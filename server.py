@@ -90,18 +90,37 @@ def project_content(project_name):
     fab_file_path = os.path.join('projects', str(project_name), f"{project_name}.fab")
     python_file_path = os.path.join('projects', str(project_name), f"{project_name}.py")
 
+    if os.path.exists(python_file_path):
+        with open(python_file_path, "r") as python_file:
+            python_content = python_file.read()
+        return render_template('editor_python.html', project=project_name, python_content=python_content)
+    else:
+        if os.path.exists(fab_file_path):
+            with open(fab_file_path, "r") as fab_file:
+                fab_content = fab_file.read()
+            return render_template('project_content.html', project=project_name, fab_content=fab_content)
+        else:
+            return "No se encontró ningún archivo para mostrar", 404
+
+@app.route('/projectGraphic/<project_name>', methods=['GET'])
+def project_content_graphic(project_name):
+    fab_file_path = os.path.join('projects', str(project_name), f"{project_name}.fab")
+
     if os.path.exists(fab_file_path):
         with open(fab_file_path, "r") as fab_file:
             fab_content = fab_file.read()
         return render_template('project_content.html', project=project_name, fab_content=fab_content)
     else:
-        if os.path.exists(python_file_path):
-            with open(python_file_path, "r") as python_file:
-                python_content = python_file.read()
-            return render_template('editor_python.html', project=project_name, python_content=python_content)
-        else:
-            return "No se encontró ningún archivo para mostrar", 404
+        return "No se encontró ningún archivo para mostrar", 404
 
+@app.route('/projectGraphicStatus/<project_name>', methods=['GET'])
+def project_content_graphic_status(project_name):
+    fab_file_path = os.path.join('projects', str(project_name), f"{project_name}.fab")
+
+    if os.path.exists(fab_file_path):
+        return jsonify({"status":"success","message":"Proyecto existente"})
+    else:
+        return jsonify({"status":"error","message":"Proyecto no encontrado"})
 
 @app.route('/save_project', methods=['POST'])
 def save_project():
@@ -123,10 +142,6 @@ def edit_code():
     project_name = request.form['project_name']
     
     python_file_path = os.path.join('projects', project_name, f"{project_name}.py")
-
-    fab_file_path = os.path.join('projects', project_name, f"{project_name}.fab")
-    if os.path.exists(fab_file_path):
-        os.remove(fab_file_path)
     
     with open(python_file_path, "w") as python_file:
         python_file.write(code_python)

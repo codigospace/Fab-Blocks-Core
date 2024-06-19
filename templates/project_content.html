@@ -345,7 +345,7 @@
                     console.log(data);
                     // Redirigir o mostrar algún mensaje al usuario, por ejemplo
                     alert('El código Python ha sido enviado correctamente.');
-                    window.location.reload();
+                    window.location.href = `/project/${projectName}`;
                 })
                 .catch(error => {
                     console.error('Error:', error);
