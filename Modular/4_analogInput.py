@@ -1,3 +1,4 @@
+import RPi.GPIO as GPIO
 import pymodular
 import time
 adc = pymodular.analogInput(3)

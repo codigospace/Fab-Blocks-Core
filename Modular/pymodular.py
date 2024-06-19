@@ -20,7 +20,7 @@ pines_analog = [ADS.P0, ADS.P1, ADS.P2, ADS.P3, ADS.P0, ADS.P1, ADS.P2, ADS.P3]
 
 class analogInput:
 	def __init__(self, Port):
-		selfe.portAnalogIn = port_analog[Port]
+		self.portAnalogIn = port_analog[Port]
 		self.pinAnalogIn = pines_analog[Port]
 	def init(self):
 		self.channel = AnalogIn(self.portAnalogIn, self.pinAnalogIn)
