@@ -256,9 +256,12 @@ def execute_code(data):
         current_process.terminate()
         current_process.wait()
 
-    # Iniciar un nuevo subproceso
+    # Obtener la ruta del intérprete de Python del entorno virtual
+    python_executable = sys.executable
+
+    # Iniciar un nuevo subproceso usando el intérprete del entorno virtual
     current_process = subprocess.Popen(
-        ['python', '-u', python_file_path],
+        [python_executable, '-u', python_file_path],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
@@ -277,10 +280,9 @@ def execute_code(data):
                 break
     finally:
         if not execution_active:
-            current_process.kill()  # Cambio aquí para asegurar que el proceso se detenga
+            current_process.kill()
         current_process.wait()
         socketio.emit('execution_complete', {'result': current_process.returncode})
-
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5000, debug=False)
