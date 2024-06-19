@@ -36,6 +36,11 @@
     onclick="saveProject()">Guardar</button>
     <button id="toggle-chart" type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5">Ocultar Gráfico</button>
     <button id="toggle-console" type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5">Ocultar Consola</button>
+    <select id="viewSelector" class="text-black bg-gray-200 font-medium rounded-lg text-sm px-5 py-2.5">
+      <option value="editor">Editor</option>
+      <option value="chart">Gráfico</option>
+      <option value="console">Consola</option>
+    </select>    
     <button onclick="openGraphic()" data-tooltip-target="tooltip-default" type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5">Volver a FabBlocks</button>
     <div id="tooltip-default" role="tooltip" class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700">
         Editar Blocks cambia el codigo
@@ -355,8 +360,34 @@
     }
   });
 
-    document.getElementById('chart-container').style.display = 'block';
+    document.getElementById('viewSelector').addEventListener('change', function() {
+    var selectedView = this.value;
+    var editorContainer = document.getElementById('boxEditor');
+    var chartContainer = document.getElementById('chart-container');
+    var outputContainer = document.getElementById('output-container');
 
+    // Ocultar todos los contenedores
+    editorContainer.style.display = 'none';
+    chartContainer.style.display = 'none';
+    outputContainer.style.display = 'none';
+
+    // Mostrar el contenedor seleccionado
+    if (selectedView === 'editor') {
+      editorContainer.style.display = 'block';
+    } else if (selectedView === 'chart') {
+      chartContainer.style.display = 'block';
+    } else if (selectedView === 'console') {
+      outputContainer.style.display = 'block';
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', function () {
+    // Mostrar el editor por defecto
+    document.getElementById('viewSelector').value = 'editor';
+    document.getElementById('boxEditor').style.display = 'block';
+    document.getElementById('chart-container').style.display = 'none';
+    document.getElementById('output-container').style.display = 'none';
+  });
   </script>
 </body>
 
