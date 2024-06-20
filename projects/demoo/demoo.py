@@ -1,12 +1,12 @@
-# Global variables
-
-# Function definition
+import time
+import random
 
 def setup():
-    pass
+  pass
 
 def loop():
-    pass
+    print(f"Potenciometro:{random.randint(2,3)}")
+    time.sleep(0.2)
 
 # Main
 setup()
