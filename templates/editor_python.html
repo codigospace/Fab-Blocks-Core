@@ -3,12 +3,14 @@
 
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <title>{{ project }}</title>
   <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='media/codigo.ico') }}">
   <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='tailwind.css') }}">
   <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='flowbite.css') }}">
-  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='javascript/highlight/styles/default.css') }}">
+  <link rel="stylesheet" type="text/css"
+    href="{{ url_for('static', filename='javascript/highlight/styles/default.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='codemirror.min.css') }}">
   <script src="{{ url_for('static', filename='tailwind.js') }}"></script>
   <script src="{{ url_for('static', filename='flowbite.js') }}"></script>
@@ -21,30 +23,30 @@
 
 <body>
   {% include 'header_index.html' %}
-  <div class="flex flex-wrap items-center justify-start m-2 p-0 space-x-2">
-    <button type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5"
-      onclick="verifySyntax()">Verificar Sintaxis</button>
-    <button type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5"
-      onclick="executeCode()">Ejecutar</button>
-    <button type="button" class="text-white bg-red-700 font-medium rounded-lg text-sm px-5 py-2.5"
-      onclick="cancelExecution()">Detener Ejecución</button>
-    <button type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5"
-      onclick="showCreateProjectModal()">Nuevo</button>
-    <button type="button" onclick="showImportModal()"
-      class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5">Abrir</button>
-    <button type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5"
-    onclick="saveProject()">Guardar</button>
-    <button id="toggle-chart" type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5">Ocultar Gráfico</button>
-    <button id="toggle-console" type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5">Ocultar Consola</button>
-    <select id="viewSelector" class="text-black bg-gray-200 font-medium rounded-lg text-sm px-5 py-2.5">
-      <option value="editor">Editor</option>
-      <option value="chart">Gráfico</option>
-      <option value="console">Consola</option>
-    </select>    
-    <button onclick="openGraphic()" data-tooltip-target="tooltip-default" type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5">Volver a FabBlocks</button>
-    <div id="tooltip-default" role="tooltip" class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700">
-        Editar Blocks cambia el codigo
-        <div class="tooltip-arrow" data-popper-arrow></div>
+  <div class="flex flex-wrap items-center justify-start m-3 p-0 space-x-2">
+    <!-- Primera fila -->
+    <div class="flex flex-wrap w-full md:w-auto space-x-1 mb-1 md:mb-0">
+      <button type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5"
+        onclick="verifySyntax()">Verificar</button>
+      <button type="button" class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5"
+        onclick="executeCode()">Ejecutar</button>
+      <button type="button" class="text-white bg-red-700 font-medium rounded-lg text-sm px-5 py-2.5"
+        onclick="cancelExecution()">Detener Ejecución</button>
+    </div>
+    <!-- Segunda fila -->
+    <div class="flex flex-wrap w-full md:w-auto space-x-2">
+      <select id="viewSelectorProject" class="text-black bg-gray-200 font-medium rounded-lg text-sm px-5 py-2.5">
+        <option value="newProject">Nuevo</option>
+        <option value="openProject">Abrir</option>
+        <option value="saveProject">Guardar</option>
+      </select>
+      <select id="viewSelector" class="text-black bg-gray-200 font-medium rounded-lg text-sm px-5 py-2.5">
+        <option value="editor">Editor</option>
+        <option value="chart">Gráfico</option>
+        <option value="console">Consola</option>
+      </select>
+      <button onclick="openGraphic()" data-tooltip-target="tooltip-default" type="button"
+        class="text-white bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5">FabBlocks</button>
     </div>
   </div>
 
@@ -264,7 +266,7 @@
 
       // Asegurarse de que los datasets estén vacíos antes de inicializar el nuevo gráfico
       chart.data.datasets = [];
-      
+
       initializeChart(); // Inicializar un nuevo gráfico
 
       var projectName = document.querySelector('.project-name').innerText;
@@ -338,56 +340,47 @@
       }
     });
 
-    document.getElementById('toggle-chart').addEventListener('click', function() {
+    document.getElementById('viewSelector').addEventListener('change', function () {
+      var selectedView = this.value;
+      var editorContainer = document.getElementById('boxEditor');
       var chartContainer = document.getElementById('chart-container');
-      if (chartContainer.style.display === 'none') {
+      var outputContainer = document.getElementById('output-container');
+
+      // Ocultar todos los contenedores
+      editorContainer.style.display = 'none';
+      chartContainer.style.display = 'none';
+      outputContainer.style.display = 'none';
+
+      // Mostrar el contenedor seleccionado
+      if (selectedView === 'editor') {
+        editorContainer.style.display = 'block';
+      } else if (selectedView === 'chart') {
         chartContainer.style.display = 'block';
-        this.textContent = 'Ocultar Gráfico';
-      } else {
-        chartContainer.style.display = 'none';
-        this.textContent = 'Mostrar Gráfico';
+      } else if (selectedView === 'console') {
+        outputContainer.style.display = 'block';
       }
     });
 
-    document.getElementById('toggle-console').addEventListener('click', function() {
-    var outputContainer = document.getElementById('output-container');
-    if (outputContainer.style.display === 'none') {
-      outputContainer.style.display = 'block';
-      this.textContent = 'Ocultar Consola';
-    } else {
-      outputContainer.style.display = 'none';
-      this.textContent = 'Mostrar Consola';
-    }
-  });
+    document.getElementById('viewSelectorProject').addEventListener('change', function () {
+      var selectedView = this.value;
 
-    document.getElementById('viewSelector').addEventListener('change', function() {
-    var selectedView = this.value;
-    var editorContainer = document.getElementById('boxEditor');
-    var chartContainer = document.getElementById('chart-container');
-    var outputContainer = document.getElementById('output-container');
+      // Mostrar el contenedor seleccionado
+      if (selectedView === 'newProject') {
+        showCreateProjectModal();
+      } else if (selectedView === 'openProject') {
+        showImportModal();
+      } else if (selectedView === 'saveProject') {
+        saveProject();
+      }
+    });
 
-    // Ocultar todos los contenedores
-    editorContainer.style.display = 'none';
-    chartContainer.style.display = 'none';
-    outputContainer.style.display = 'none';
-
-    // Mostrar el contenedor seleccionado
-    if (selectedView === 'editor') {
-      editorContainer.style.display = 'block';
-    } else if (selectedView === 'chart') {
-      chartContainer.style.display = 'block';
-    } else if (selectedView === 'console') {
-      outputContainer.style.display = 'block';
-    }
-  });
-
-  document.addEventListener('DOMContentLoaded', function () {
-    // Mostrar el editor por defecto
-    document.getElementById('viewSelector').value = 'editor';
-    document.getElementById('boxEditor').style.display = 'block';
-    document.getElementById('chart-container').style.display = 'none';
-    document.getElementById('output-container').style.display = 'none';
-  });
+    document.addEventListener('DOMContentLoaded', function () {
+      // Mostrar el editor por defecto
+      document.getElementById('viewSelector').value = 'editor';
+      document.getElementById('boxEditor').style.display = 'block';
+      document.getElementById('chart-container').style.display = 'none';
+      document.getElementById('output-container').style.display = 'none';
+    });
   </script>
 </body>
 
