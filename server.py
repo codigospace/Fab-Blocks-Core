@@ -299,5 +299,13 @@ def execute_code(data):
         current_process.wait()
         socketio.emit('execution_complete', {'result': current_process.returncode})
 
+@app.route('/documentacion/<path:filename>')
+def serve_documentation(filename):
+    documentation_path = os.path.join('documentation', filename)
+    if os.path.exists(documentation_path):
+        return send_from_directory(directory='documentation', path=filename)
+    else:
+        return jsonify({"status": "error", "message": "Archivo no encontrado."}), 404
+
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000, debug=False)
+    socketio.run(app, host='0.0.0.0', port=5000, debug=True)

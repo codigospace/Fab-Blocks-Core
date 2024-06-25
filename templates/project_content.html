@@ -32,13 +32,12 @@
         </div>
         <!-- Segunda fila -->
         <div class="flex flex-wrap w-full md:w-auto space-x-2 pt-1">
-            <select id="toggle-visibility"
-                class="text-black bg-gray-200 font-medium rounded-lg text-sm px-5 py-2.5">
+            <select id="toggle-visibility" class="text-black bg-gray-200 font-medium rounded-lg text-sm px-5 py-2.5">
                 <option value="show-chart">Mostrar Gráfico</option>
                 <option value="show-console">Mostrar Consola</option>
                 <option value="show-program">Mostrar Programa</option>
             </select>
-    
+
             <select id="viewSelector" onchange="changeView()"
                 class="text-black bg-gray-200 font-medium rounded-lg text-sm px-5 py-2.5">
                 <option value="bq-code">Bloques-Codigo</option>
@@ -46,7 +45,7 @@
                 <option value="code">Codigo</option>
             </select>
         </div>
-        
+
         <!-- Tercer fila -->
         <div class="flex flex-wrap w-full md:w-auto space-x-1 md:mb-0 pt-1">
             <select id="viewSelectorProject" class="text-black bg-gray-200 font-medium rounded-lg text-sm px-5 py-2.5">
@@ -65,16 +64,15 @@
             </button>
         </div>
     </div>
-    
-    <div class="flex flex-col lg:flex-row mx-20 px-4 lg:px-20 space-y-4 lg:space-y-0 lg:space-x-4">
-        <div id="chart-container" class="flex-1 lg:w-1/2 p-4 border border-gray-300 rounded relative h-full">
-            <h3 class="font-bold mb-2">Gráfico en tiempo real:</h3>
-            <canvas id="chart"></canvas>
-        </div>
-        <div id="output-container" class="flex-1 lg:w-1/2 p-4 border border-gray-300 rounded h-full">
-            <h3 class="font-bold mb-2">Salida:</h3>
-            <pre id="output-text" class="overflow-auto h-full"></pre>
-        </div>
+
+    <div id="chart-container" class="w-full md:w-auto md:h-auto mt-4 md:mt-0 p-4 border border-gray-300 rounded relative max-w-5xl mx-auto">
+      <h3 class="font-bold mb-2">Gráfico en tiempo real:</h3>
+      <canvas id="chart"></canvas>
+    </div>
+    <div id="output-container"
+        class="items-center mt-4 p-4 border border-gray-300 rounded mx-2 md:mx-full mb-1 md:mb-2 h-[70vh]">
+        <h3 class="font-bold mb-2">Salida:</h3>
+        <pre id="output-text" class="overflow-auto h-[60vh]"></pre>
     </div>
 
 
