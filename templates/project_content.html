@@ -65,9 +65,10 @@
         </div>
     </div>
 
-    <div id="chart-container" class="w-full md:w-auto md:h-auto mt-4 md:mt-0 p-4 border border-gray-300 rounded relative max-w-5xl mx-auto">
-      <h3 class="font-bold mb-2">Gráfico en tiempo real:</h3>
-      <canvas id="chart"></canvas>
+    <div id="chart-container"
+        class="w-full md:w-auto md:h-auto mt-4 md:mt-0 p-4 border border-gray-300 rounded relative max-w-5xl mx-auto">
+        <h3 class="font-bold mb-2">Gráfico en tiempo real:</h3>
+        <canvas id="chart"></canvas>
     </div>
     <div id="output-container"
         class="items-center mt-4 p-4 border border-gray-300 rounded mx-2 md:mx-full mb-1 md:mb-2 h-[70vh]">
@@ -252,8 +253,6 @@
 
             // Modificar el inicio del XML
             var modifiedXml = xml.replace('<xml xmlns="http://www.w3.org/1999/xhtml">', '<xml id="startBlocks" style="display: none">');
-            console.log('Project Name:', projectName);
-            console.log('Blockly XML:', modifiedXml);
 
             // Crear un objeto FormData
             var formData = new FormData();
@@ -267,7 +266,6 @@
             })
                 .then(response => response.json())
                 .then(data => {
-                    console.log(data);
                     // Mostrar mensaje de éxito si showAlerts es verdadero
                     if (showAlerts) {
                         showAlert('success', '¡Proyecto guardado exitosamente!');
@@ -329,8 +327,7 @@
         });
 
         socket.on('execution_complete', function (data) {
-            console.log('Execution complete. Result:', data.result);
-            // Haz lo que necesites hacer cuando la ejecución del código haya terminado
+            showAlert(data.status, data.result_message);
         });
 
         function editPythonCode() {
@@ -353,15 +350,10 @@
             })
                 .then(response => response.text())
                 .then(data => {
-                    // Manejar la respuesta del servidor si es necesario
-                    console.log(data);
-                    // Redirigir o mostrar algún mensaje al usuario, por ejemplo
                     alert('El código Python ha sido enviado correctamente.');
                     window.location.href = `/project/${projectName}`;
                 })
                 .catch(error => {
-                    console.error('Error:', error);
-                    // Manejar cualquier error que pueda ocurrir durante la solicitud
                     alert('Ha ocurrido un error al enviar el código Python.');
                 });
         }
@@ -405,7 +397,6 @@
                 document.getElementById('languageSelector').value = selectedLanguage;
                 changeLanguage();
             }
-            // También deberías llamar a la función changeView() para asegurarte de que el estado de la vista se mantenga.
             var selectedView = localStorage.getItem('selectedView');
             if (selectedView) {
                 document.getElementById('viewSelector').value = selectedView;
@@ -421,7 +412,7 @@
                         outputText.innerText += data.output + '\n';
                         outputText.scrollTop = outputText.scrollHeight;
                         const output = data.output;
-                        const regex = /(\w+):(\d+)/g;
+                        const regex = /(\w+):(-?\d+(\.\d+)?)/g;
                         let match;
                         while ((match = regex.exec(output)) !== null) {
                             const label = match[1];
@@ -505,6 +496,7 @@
             }
             chart.data.datasets = [];
             initializeChart();
+            saveProject(showAlerts = false);
             var projectName = document.querySelector('.project-name').innerText;
             var formData = new FormData();
             formData.append('project_name', projectName);
@@ -518,14 +510,12 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success') {
-                        showAlert('success', '¡Proyecto guardado exitosamente!');
                         socket.emit('execute_code', { project_name: projectName });
                     } else {
                         showAlert('error', 'Hubo un problema al guardar el proyecto.');
                     }
                 })
                 .catch(error => {
-                    console.error('Error:', error);
                     showAlert('error', 'Hubo un problema al guardar el proyecto.');
                 });
         }
@@ -567,18 +557,23 @@
             var outputContainer = document.getElementById('output-container');
             var wrapContainer = document.getElementById('wrap');
 
+            var selectElement = document.getElementById('viewSelector');
+
             switch (value) {
                 case 'show-chart':
+                selectElement.disabled = true;
                     chartContainer.style.display = 'block';
                     outputContainer.style.display = 'none';
                     wrapContainer.style.display = 'none';
                     break;
                 case 'show-console':
+                    selectElement.disabled = true;
                     chartContainer.style.display = 'none';
                     outputContainer.style.display = 'block';
                     wrapContainer.style.display = 'none';
                     break;
                 case 'show-program':
+                selectElement.disabled = false;
                     chartContainer.style.display = 'none';
                     outputContainer.style.display = 'none';
                     wrapContainer.style.display = 'block';
@@ -588,7 +583,7 @@
                     chartContainer.style.display = 'none';
                     outputContainer.style.display = 'none';
                     wrapContainer.style.display = 'block';
-                    break;
+                break;
             }
         });
         document.getElementById('viewSelectorProject').addEventListener('change', function () {

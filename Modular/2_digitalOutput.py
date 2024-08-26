@@ -1,14 +1,12 @@
 import pymodular
 import time
 led = pymodular.digitalOutput(1)
-but = pymodular.digitalInput(0)
 try:
 	led.init()
-	but.init()
 	while 1:
-		if but.read():
-			led.write(1)
-		else:
-			led.write(0)
+		led.write(1)
+		time.sleep(1)
+		led.write(0)
+		time.sleep(1)
 except KeyboardInterrupt:
 	print("d")

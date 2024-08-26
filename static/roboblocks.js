@@ -9675,7 +9675,6 @@
             // Create a string made up of any number of elements of any type.
             var code = '';
             var a;
-            console.log('this.itemCount_', this.itemCount_);
             if (this.itemCount_ === 0) {
                 return ['\'\'', Blockly.Arduino.ORDER_ATOMIC];
             } else if (this.itemCount_ === 1) {

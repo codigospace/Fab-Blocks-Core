@@ -111,7 +111,7 @@ def project_content_graphic(project_name):
             fab_content = fab_file.read()
         return render_template('project_content.html', project=project_name, fab_content=fab_content)
     else:
-        return "No se encontró ningún archivo para mostrar", 404
+        return render_template('error.html')
 
 @app.route('/projectGraphicStatus/<project_name>', methods=['GET'])
 def project_content_graphic_status(project_name):
@@ -256,6 +256,7 @@ def cancel_execution_signal():
 
 @socketio.on('execute_code')
 def execute_code(data):
+    # print("ejecutando codigo")
     global current_process
     project_name = data['project_name']
 
@@ -297,7 +298,20 @@ def execute_code(data):
         if not execution_active:
             current_process.kill()
         current_process.wait()
-        socketio.emit('execution_complete', {'result': current_process.returncode})
+        
+        if (current_process.returncode == 0):
+            result = {
+                "result_message" : "Ejecución completada exitosamente.",
+                "status" : "success",
+            }
+        else:
+            result = {
+                "result_message" : "Ejecución falló",
+                "status" : "error",
+            }
+
+        # Emitir el mensaje en lugar del código de error
+        socketio.emit('execution_complete', result)
 
 @app.route('/documentacion/<path:filename>')
 def serve_documentation(filename):

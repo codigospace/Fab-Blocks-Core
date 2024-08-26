@@ -231,63 +231,64 @@
 
 // Función para mostrar el modal de importar proyecto
 function showImportModal() {
-        const modal = document.getElementById('importModal');
-        modal.classList.remove('hidden');
-    }
+    const modal = document.getElementById('importModal');
+    modal.classList.remove('hidden');
+}
 
-    // Función para cerrar el modal de importar proyecto
-    function closeImportModal() {
-        const modal = document.getElementById('importModal');
-        modal.classList.add('hidden');
-    }
+// Función para cerrar el modal de importar proyecto
+function closeImportModal() {
+    const modal = document.getElementById('importModal');
+    modal.classList.add('hidden');
+}
 
-    // Event listener para el formulario de importar proyecto
-    document.getElementById("importForm").addEventListener("submit", function(event){
-        event.preventDefault();
-        var formData = new FormData(this);
-        var fileName = formData.get('file').name; // Obtener el nombre del archivo
+// Event listener para el formulario de importar proyecto
+document.getElementById("importForm").addEventListener("submit", function(event){
+    event.preventDefault();
+    var formData = new FormData(this);
+    var fileName = formData.get('file').name; // Obtener el nombre del archivo
 
-        fetch('/import_project', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                alert('¡Proyecto importado exitosamente!');
-                // Redireccionar a la página del proyecto importado
-                window.location.href = '/project/' + fileName.split('.').slice(0, -1).join('.');
-            } else {
-                alert('Error al importar el proyecto: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error al importar el proyecto. Consulte la consola para obtener más información.');
-        });
-
-        // Cerrar el modal después de enviar el formulario
-        closeImportModal();
+    fetch('/import_project', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert('¡Proyecto importado exitosamente!');
+            // Redireccionar a la página del proyecto importado
+            window.location.href = '/project/' + fileName.split('.').slice(0, -1).join('.');
+        } else {
+            alert('Error al importar el proyecto: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al importar el proyecto. Consulte la consola para obtener más información.');
     });
 
-    document.getElementById("exportLink").addEventListener("click", function(event) {
+    // Cerrar el modal después de enviar el formulario
+    closeImportModal();
+});
+
+document.getElementById("exportLink").addEventListener("click", function(event) {
     event.preventDefault(); // Prevenir el comportamiento predeterminado del enlace
+    var projectName = document.querySelector('.project-name').innerText;
+    var xml = Blockly.Xml.domToText(Blockly.Xml.workspaceToDom(Blockly.getMainWorkspace()));
 
-    // Obtener el nombre del proyecto
-    const projectName = document.querySelector(".project-name").innerText;
+    // Modificar el inicio del XML
+    var modifiedXml = xml.replace('<xml xmlns="http://www.w3.org/1999/xhtml">', '<xml id="startBlocks" style="display: none">');
+    // Convertir el contenido del XML modificado a un blob de texto
+    var blob = new Blob([modifiedXml], { type: 'text/plain' });
 
-    // Crear un elemento <a> oculto para descargar el archivo
-    const downloadLink = document.createElement("a");
-    downloadLink.href = `/export_project/${encodeURIComponent(projectName)}`;
-    downloadLink.download = `${projectName}.fab`; // Nombre de archivo predeterminado si se descarga un .fab
-    downloadLink.style.display = "none";
-    document.body.appendChild(downloadLink);
+    // Crear un enlace de descarga dinámicamente
+    var link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = projectName + '.fab';
 
-    // Simular el clic en el enlace de descarga
-    downloadLink.click();
-
-    // Eliminar el elemento <a> después de la descarga
-    document.body.removeChild(downloadLink);
+    // Añadir el enlace al documento, disparar un clic, y luego removerlo
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 });
 
 // Función para mostrar el modal Acerca de
