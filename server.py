@@ -291,28 +291,19 @@ def execute_code(data):
             output = current_process.stdout.readline()
             if output:
                 socketio.emit('execution_output', {'output': output.strip()})
-                socketio.sleep(0)
+                print(output)
+                socketio.sleep(1)
             else:
                 break
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
     finally:
         if not execution_active:
             current_process.kill()
         current_process.wait()
-        
-        if (current_process.returncode == 0):
-            result = {
-                "result_message" : "Ejecución completada exitosamente.",
-                "status" : "success",
-            }
-        else:
-            result = {
-                "result_message" : "Ejecución falló",
-                "status" : "error",
-            }
+        socketio.emit('execution_complete', {'result': current_process.returncode})
 
-        # Emitir el mensaje en lugar del código de error
-        socketio.emit('execution_complete', result)
-
+    
 @app.route('/documentacion/<path:filename>')
 def serve_documentation(filename):
     documentation_path = os.path.join('documentation', filename)
