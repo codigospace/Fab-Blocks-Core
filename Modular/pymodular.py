@@ -13,8 +13,8 @@ i2c = busio.I2C(board.SCL, board.SDA)
 ads0 = ADS.ADS1115(address=0x48,i2c=i2c)
 ads1 = ADS.ADS1115(address=0x49,i2c=i2c)
 #Modular
-pines_dos    = [ 1,  2]
-pines_cuatro = [17, 23]
+pines_dos    = [ 4,  27, 6]
+pines_cuatro = [17, 22, 5]
 port_analog  = [  ads0,   ads0,   ads0,   ads0,   ads1,   ads1,   ads1,   ads1]
 pines_analog = [ADS.P0, ADS.P1, ADS.P2, ADS.P3, ADS.P0, ADS.P1, ADS.P2, ADS.P3]
 

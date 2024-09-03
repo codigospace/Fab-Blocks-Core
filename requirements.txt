@@ -1,2 +1,4 @@
 Flask==3.0.2
 pylint
+flask_socketio
+evenlet
