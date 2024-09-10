@@ -289,9 +289,15 @@ def execute_code(data):
     try:
         while execution_active and not current_process.poll():
             output = current_process.stdout.readline()
+            error_output = current_process.stderr.readline()
+
             if output:
                 socketio.emit('execution_output', {'output': output.strip()})
                 print(output)
+                socketio.sleep(1)
+            elif error_output:
+                socketio.emit('execution_error', {'error': error_output.strip()})
+                print(f"Error: {error_output}")
                 socketio.sleep(1)
             else:
                 break
