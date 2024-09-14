@@ -36,3 +36,23 @@ python3 server.py
 source venv/bin/activate
 ```
 ### Puedes detener el servidor Flask presionando Ctrl+C.
+
+## Instalación y Ejecución en Raspberry Pi Zero 2 W Rev 1.0
+
+### Conexión con redes Wi-Fi
+
+#### 1. Activamos el servicio de internet de la Raspberry Pi
+```bash
+sudo nmcli device wifi list
+```
+#### 2. Nos conectamos a la red Wi-Fi de nuestra preferencia
+```bash
+sudo nmcli device wifi connect "nombre" password "contraseña"
+```
+>Nota
+   >>Puedes listar las redes wifi disponibles para tu dispositivo
+   >>```bash
+   >>sudo nmcli device wifi list
+   >>```
+
+>A patir de aca puedes seguir los pasos al inicio de este documento para su conexión
