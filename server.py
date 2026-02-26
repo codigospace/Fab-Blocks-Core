@@ -14,7 +14,7 @@ import sys
 
 app = Flask(__name__, static_folder='static')
 app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app, async_mode='eventlet')
+socketio = SocketIO(app, async_mode='threading')
 
 def save_data(data):
     filename = 'data.json'
